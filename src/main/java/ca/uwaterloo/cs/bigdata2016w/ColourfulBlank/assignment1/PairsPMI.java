@@ -37,10 +37,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.ParserProperties;
 
-// import org.apache.hadoop.mapred.jobcontrol.Job;
-
 import tl.lin.data.pair.PairOfStrings;
-// import tl.lin.data.pair.PairOfStrings;
 
 public class PairsPMI extends Configured implements Tool {
   private static final Logger LOG = Logger.getLogger(PairsPMI.class);
@@ -118,9 +115,6 @@ protected static class MyFirstCombiner extends
       if (sum >= 10){
         VALUE.set(sum);
         BIGRAM.set(key.getLeftElement(), key.getRightElement());
-      // if (key.getLeftElement().equals("a, lie") || key.getRightElement().equals("a, lie")){
-        // System.out.println("\n\n\n\n" + key.getLeftElement() + key.getRightElement() + "\n\n\n\n");
-      // }
         context.write(BIGRAM, VALUE);
       }
     }
@@ -143,35 +137,16 @@ protected static class MyFirstCombiner extends
     public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
       String line = ((Text) value).toString();
-        String[] char_ary = line.split("");
-        // for (int i = 0; i < char_ary.length; i++){
-          string1 = "";
-          string2 = "";
-          number = "";
-          int index1 = 0;//kaishi 
-          int index2 = 0;// dou hao
-          int index3 = 0;//kuo huao
-          for (int i = 0; i < char_ary.length; i++){
-            if (char_ary[i].equals("(")){
-              index1 = i + 1;
-            }
-            if (char_ary[i].equals(",")){
-              index2 = i;
-            }
-            if (char_ary[i].equals(")")){
-              index3 = i;
-            }
-          }
-          System.out.println(index1);
-          string1 = line.substring(index1, index2);
-          string2 = line.substring(index2+2, index3);
-          number = line.substring(index3+2);
-          // System.out.println(line + "String1:" + string1 + "|String2:" + string2 + "Number:" + number) ;
-          if (!(string1.equals("*") || string2.equals("*"))){
-             BIGRAM.set(string1, string2);
-            OCC.set(Float.parseFloat(number));
-            context.write(BIGRAM, OCC);
-          }
+      StringTokenizer itr = new StringTokenizer(line);
+      string1 = itr.nextToken().toLowerCase().replaceAll("(^[^a-z]+|[^a-z]+$)", "");
+      string2 = itr.nextToken().toLowerCase().replaceAll("(^[^a-z]+|[^a-z]+$)", "");
+      number = itr.nextToken();
+
+      if (!(string1.equals("") || string2.equals(""))){
+        BIGRAM.set(string1, string2);
+        OCC.set(Float.parseFloat(number));
+        context.write(BIGRAM, OCC);
+      }
          
     }
   }
@@ -201,7 +176,6 @@ protected static class MySecondCombiner extends
     private String number = "";
    @Override
    public void setup(Context context){
-      // new InputStreamReader(<insert stream here>, "UTF-8");
      try{
           String stringPath = "temp/part-r-0000";
           for (int f = 0; f < 5; f++){
@@ -212,47 +186,21 @@ protected static class MySecondCombiner extends
             FloatWritable value = new FloatWritable();
             line=br.readLine();
             while (line != null){
-              String[] char_ary = line.split("");
-              // for (int i = 0; i < char_ary.length; i++){
-                string1 = "";
-                string2 = "";
-                number = "";
-                int index1 = 0;//kaishi 
-                int index2 = 0;// dou hao
-                int index3 = 0;//kuo huao
-                for (int i = 0; i < char_ary.length; i++){
-                  if (char_ary[i].equals("(")){
-                    index1 = i + 1;
-                  }
-                  if (char_ary[i].equals(",")){
-                    index2 = i;
-                  }
-                  if (char_ary[i].equals(")")){
-                    index3 = i;
-                  }
-                }
-                string1 = line.substring(index1, index2);
-                string2 = line.substring(index2+2, index3);
-                number = line.substring(index3+2);
-                // System.out.println("String1:" + string1 + "|String2:" + string2 + "Number:" + number ) ;
-                  if ( string1.equals("*") ){
+              StringTokenizer itr = new StringTokenizer(line);
+              string1 = itr.nextToken().toLowerCase().replaceAll("(^[^a-z]+|[^a-z]+$)", "");
+              string2 = itr.nextToken().toLowerCase().replaceAll("(^[^a-z]+|[^a-z]+$)", "");
+              number = itr.nextToken();
+                  if ( string1.equals("") ){
                     TOTALNUMBER = Float.parseFloat(number);
-                  } else if ( string2.equals("*") ){
-                    
-                    // value.set(Float.parseFloat(number));
+                  } else if ( string2.equals("") ){
                     WORDS.put(string1, number);
-                    if (string1.equals("you")){
-                      // System.out.println(Float.parseFloat(number));
-                    System.out.println(WORDS.get(string1));
                   }
-                  }
-              // }
               line=br.readLine();
             }
           }
         }catch(Exception e){
             System.out.println("\n\n\n\n" + "APPLE,APPLE, I LOVE APPLE!" + "\n\n\n\n");
-          e.printStackTrace();
+              e.printStackTrace();
             System.out.println("\n\n\n\n" + "APPLE,APPLE, I LOVE APPLE!" + "\n\n\n\n");
         }
    }
@@ -263,12 +211,8 @@ protected static class MySecondCombiner extends
       double pmi = 0.0f;
        Iterator<FloatWritable> iter = values.iterator();
        float num = iter.next().get();
-       // if (key.getLeftElement().equals("you")){
-                    // System.out.println("+" + Float.parseFloat(WORDS.get(key.getLeftElement())) + "right:" + key.getRightElement());
-        // }
        System.out.println("TOTALNUMBER:" + Float.toString(TOTALNUMBER) + "P(x,y):" + num + key.getLeftElement()+":"+WORDS.get(key.getLeftElement()) + key.getRightElement()+":"+ WORDS.get(key.getRightElement()));
       pmi = Math.log10(TOTALNUMBER *  num /  Float.parseFloat(WORDS.get(key.getLeftElement())) / Float.parseFloat(WORDS.get(key.getRightElement())));
-      // System.out.println("\n" + pmi + "\n");
       PMI.set(pmi);
       BIGRAM.set(key.getLeftElement(), key.getRightElement());
       context.write(key, PMI);
@@ -283,7 +227,8 @@ protected static class MySecondCombiner extends
       return (key.getLeftElement().hashCode() & Integer.MAX_VALUE) % numReduceTasks;
     }
   }
-//////
+/**---------------------------------------------------------------------------------------------------------------
+*/
   /**
    * Creates an instance of this tool.
    */
@@ -334,12 +279,10 @@ protected static class MySecondCombiner extends
     FileSystem.get(getConf()).delete(outputDir, true);
     FileSystem.get(getConf()).delete(midTemp, true);
 
-    // job_x.getConfiguration().setInt("window", args.window);
-
     job_x.setNumReduceTasks(args.numReducers);
 
     FileInputFormat.setInputPaths(job_x, new Path(args.input));
-    FileOutputFormat.setOutputPath(job_x, /*new Path(args.output));*/ new Path("temp"));
+    FileOutputFormat.setOutputPath(job_x, new Path("temp"));
 
     job_x.setMapOutputKeyClass(PairOfStrings.class);
     job_x.setMapOutputValueClass(FloatWritable.class);
@@ -358,7 +301,6 @@ protected static class MySecondCombiner extends
     job_y.setJobName(PairsPMI.class.getSimpleName());
     job_y.setJarByClass(PairsPMI.class);
 
-    // job_y.getConfiguration().setInt("window", args.window);
     job_y.setNumReduceTasks(args.numReducers);
 
     FileInputFormat.setInputPaths(job_y, new Path("temp"));
@@ -374,7 +316,6 @@ protected static class MySecondCombiner extends
     job_y.setReducerClass(MySecondReducer.class);
     job_y.setPartitionerClass(MySecondPartitioner.class);
     
-    // job_y.addDependingJob(job_x);
     job_y.waitForCompletion(true);
     System.out.println("Job Finished in " + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds");
     return 0;
