@@ -22,7 +22,9 @@ At linux.student.cs.uwaterloo.ca:
 
 ### Question 4
 	
-38505  115515 1262808
+- 38505  
+- 115515
+- 1262808
 
 ### Question 5
 
