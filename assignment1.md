@@ -39,6 +39,8 @@ At linux.student.cs.uwaterloo.ca:
 + (oswald, steward)	3.2020094929024916
 + (donalbain, malcolm)	3.1544078492855605
 
+Thought: this two words are mostly occur with each other
+
 ### Question 6
 
 + (tears, eyes)	1.1651669513642202
