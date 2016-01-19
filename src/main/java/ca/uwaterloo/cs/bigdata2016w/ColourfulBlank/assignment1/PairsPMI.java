@@ -174,17 +174,19 @@ protected static class MySecondCombiner extends
     private String string1 = "";
     private String string2 = "";
     private String number = "";
+    private int numReducers = 5;
    @Override
    public void setup(Context context){
      try{
           String stringPath = "temp/part-r-0000";
-          for (int f = 0; f < 5; f++){
+          numReducers = context.getConfiguration().getInt("NumberOfReducers", 5);
+          for (int f = 0; f < numReducers; f++){
             Path pathOfTemp = new Path(stringPath + Integer.toString(f));//Location of file in HDFS
             FileSystem fs = FileSystem.get(new Configuration());
-            BufferedReader br=new BufferedReader(new InputStreamReader(fs.open(pathOfTemp), "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(pathOfTemp), "UTF-8"));
             String line;
             FloatWritable value = new FloatWritable();
-            line=br.readLine();
+            line = br.readLine();
             while (line != null){
               StringTokenizer itr = new StringTokenizer(line);
               string1 = itr.nextToken().toLowerCase().replaceAll("(^[^a-z]+|[^a-z]+$)", "");
@@ -195,7 +197,7 @@ protected static class MySecondCombiner extends
                   } else if ( string2.equals("") ){
                     WORDS.put(string1, number);
                   }
-              line=br.readLine();
+              line = br.readLine();
             }
           }
         }catch(Exception e){
@@ -211,7 +213,7 @@ protected static class MySecondCombiner extends
       double pmi = 0.0f;
        Iterator<FloatWritable> iter = values.iterator();
        float num = iter.next().get();
-       System.out.println("TOTALNUMBER:" + Float.toString(TOTALNUMBER) + "P(x,y):" + num + key.getLeftElement()+":"+WORDS.get(key.getLeftElement()) + key.getRightElement()+":"+ WORDS.get(key.getRightElement()));
+       // System.out.println("TOTALNUMBER:" + Float.toString(TOTALNUMBER) + "P(x,y):" + num + key.getLeftElement()+":"+WORDS.get(key.getLeftElement()) + key.getRightElement()+":"+ WORDS.get(key.getRightElement()));
       pmi = Math.log10(TOTALNUMBER *  num /  Float.parseFloat(WORDS.get(key.getLeftElement())) / Float.parseFloat(WORDS.get(key.getRightElement())));
       PMI.set(pmi);
       BIGRAM.set(key.getLeftElement(), key.getRightElement());
@@ -279,6 +281,12 @@ protected static class MySecondCombiner extends
     FileSystem.get(getConf()).delete(outputDir, true);
     FileSystem.get(getConf()).delete(midTemp, true);
 
+    job_x.getConfiguration().setInt("mapred.max.split.size", 1024 * 1024 * 64);
+    job_x.getConfiguration().set("mapreduce.map.memory.mb", "3072");
+    job_x.getConfiguration().set("mapreduce.map.java.opts", "-Xmx3072m");
+    job_x.getConfiguration().set("mapreduce.reduce.memory.mb", "3072");
+    job_x.getConfiguration().set("mapreduce.reduce.java.opts", "-Xmx3072m");
+
     job_x.setNumReduceTasks(args.numReducers);
 
     FileInputFormat.setInputPaths(job_x, new Path(args.input));
@@ -301,6 +309,13 @@ protected static class MySecondCombiner extends
     job_y.setJobName(PairsPMI.class.getSimpleName());
     job_y.setJarByClass(PairsPMI.class);
 
+    job_y.getConfiguration().setInt("mapred.max.split.size", 1024 * 1024 * 64);
+    job_y.getConfiguration().set("mapreduce.map.memory.mb", "3072");
+    job_y.getConfiguration().set("mapreduce.map.java.opts", "-Xmx3072m");
+    job_y.getConfiguration().set("mapreduce.reduce.memory.mb", "3072");
+    job_y.getConfiguration().set("mapreduce.reduce.java.opts", "-Xmx3072m");
+    job_y.getConfiguration().setInt("NumberOfReducers", args.numReducers);
+    
     job_y.setNumReduceTasks(args.numReducers);
 
     FileInputFormat.setInputPaths(job_y, new Path("temp"));
