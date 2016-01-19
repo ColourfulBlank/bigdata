@@ -17,8 +17,8 @@ At linux.student.cs.uwaterloo.ca:
 ### Question 3
 
 At linux.student.cs.uwaterloo.ca:
-+ Pairs : 32.997 seconds
-+ Stripes : 23.962 seconds
++ Pairs : 33.783 seconds
++ Stripes : 24.862 seconds
 
 ### Question 4
 
