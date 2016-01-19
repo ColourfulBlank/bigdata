@@ -10,15 +10,15 @@
 
 ### Question 2
 	
-At linux.student.cs.uwaterloo.ca:
-+ Pairs : 32.997 seconds
-+ Stripes : 23.962 seconds
+> At linux.student.cs.uwaterloo.ca:
+> + Pairs : 32.997 seconds
+> + Stripes : 23.962 seconds
 
 ### Question 3
 
 ### Question 4
 	
-	38505  115515 1262808
+> 38505  115515 1262808
 
 ### Question 5
 
