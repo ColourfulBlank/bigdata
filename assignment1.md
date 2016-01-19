@@ -4,15 +4,15 @@
 
 ### Question 1
 
-Pairs implementation. I used 2 jobs, one to count the total words and the second one use the total words find from first job to get the PMI. Input to the job one is the files, output from job, is the paired words and word line counts and total line counts. I saved them to HDFS, at the beginning of second job, read in, parse it, calculate it. the final output is a pair of string and the corresponding PMI. Job 1 intermediate key-value pairs are total line number processed from each mapper and total line occur of each word processed from each mapper and word co-occurance pairs and numbers. From Job 2 Intermediate key-value pairs only is word co-occurance pairs and numbers (<pairs of String, number>).
+> Pairs implementation. I used 2 jobs, one to count the total words and the second one use the total words find from first job to get the PMI. Input to the job one is the files, output from job, is the paired words and word line counts and total line counts. I saved them to HDFS, at the beginning of second job, read in, parse it, calculate it. the final output is a pair of string and the corresponding PMI. Job 1 intermediate key-value pairs are total line number processed from each mapper and total line occur of each word processed from each mapper and word co-occurance pairs and numbers. From Job 2 Intermediate key-value pairs only is word co-occurance pairs and numbers (<pairs of String, number>).
 
-Stripes implementation. I used 2 jobs, same idea, one to count the total words and the second one use the total words find from first job to get the PMI. Input to the job one is the files, output from job, is the  words followed by word line counts, total line counts and the pair counts groups in the Stripes. I saved them to HDFS, at the beginning of second job, read in, parse it, calculate it. the final output is a Text word and the corresponding PMIs to all its pairs. Intermediate key-value pairs is kind of like the Pairs implementation, but data format as a key and stripe pair (<key, HashMap>).
+> Stripes implementation. I used 2 jobs, same idea, one to count the total words and the second one use the total words find from first job to get the PMI. Input to the job one is the files, output from job, is the  words followed by word line counts, total line counts and the pair counts groups in the Stripes. I saved them to HDFS, at the beginning of second job, read in, parse it, calculate it. the final output is a Text word and the corresponding PMIs to all its pairs. Intermediate key-value pairs is kind of like the Pairs implementation, but data format as a key and stripe pair (<key, HashMap>).
 
 ### Question 2
 	
-	At linux.student.cs.uwaterloo.ca:
-	+ Pairs : 32.997 seconds
-	+ Stripes : 23.962 seconds
+At linux.student.cs.uwaterloo.ca:
++ Pairs : 32.997 seconds
++ Stripes : 23.962 seconds
 
 ### Question 3
 
