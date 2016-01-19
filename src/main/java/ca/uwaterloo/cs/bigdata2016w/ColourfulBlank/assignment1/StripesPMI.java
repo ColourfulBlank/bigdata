@@ -194,9 +194,6 @@ public class StripesPMI extends Configured implements Tool {
      try{
           String stringPath = "temp/part-r-0000";
           numReducers = context.getConfiguration().getInt("NumberOfReducers", 5);
-          // Configuration conf = new Configuration();
-          // System.out.println("++++++"+conf.get("reducers"));
-          // Configuration.dumpConfiguration(conf, System.out);
           for (int f = 0; f < numReducers; f++){
             Path pathOfTemp = new Path(stringPath + Integer.toString(f));//Location of file in HDFS
             FileSystem fs = FileSystem.get(new Configuration());
