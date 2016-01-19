@@ -29,15 +29,6 @@ At linux.student.cs.uwaterloo.ca:
 ### Question 5
 
 + (maine, anjou)	3.633142306524297
-+ (haven, milford)	3.620177345810872
-+ (alexandria, cleopatra's)	3.5387794842617986
-+ (rosencrantz, guildenstern)	3.5383152420670156
-+ (personae, dramatis)	3.531684657972968
-+ (cawdor, thane)	3.464737847562215
-+ (le, beau)	3.347624461453459
-+ (britain, cymbeline's)	3.3012357490627773
-+ (oswald, steward)	3.2020094929024916
-+ (donalbain, malcolm)	3.1544078492855605
 
 Thought: this two words are mostly occur with each other, and this two words are not common words.
 
