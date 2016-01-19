@@ -21,10 +21,10 @@ At linux.student.cs.uwaterloo.ca:
 + Stripes : 23.962 seconds
 
 ### Question 4
-	
-- 38505  
-- 115515
-- 1262808
+
+- line: 38505  
+- word: 115515
+- byte: 1262808
 
 ### Question 5
 
