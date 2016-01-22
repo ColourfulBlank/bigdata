@@ -1,6 +1,6 @@
 package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment2
 
-import io.bespin.scala.util.Tokenizer
+import utilFromBespin.Tokenizer
 
 import org.apache.log4j._
 import org.apache.hadoop.fs._
