@@ -143,9 +143,9 @@
       <version>${spark.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.bespin</groupId>
-      <artifactId>bespin</artifactId>
-      <version>4.0.0</version>
+      <groupId>org.rogach</groupId>
+      <artifactId>scallop_2.10</artifactId>
+      <version>0.9.5</version>
     </dependency>
   </dependencies>
 
