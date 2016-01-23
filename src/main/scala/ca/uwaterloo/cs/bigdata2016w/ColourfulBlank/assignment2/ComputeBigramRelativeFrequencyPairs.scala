@@ -25,7 +25,7 @@ object BigramCount extends Tokenizer {
     log.info("Output: " + args.output())
     log.info("Number of reducers: " + args.reducers())
 
-    val conf = new SparkConf().setAppName("PMI_pairs")
+    val conf = new SparkConf().setAppName("RF_pairs")
     val sc = new SparkContext(conf)
 
     val outputDir = new Path(args.output())
