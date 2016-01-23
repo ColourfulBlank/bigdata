@@ -142,6 +142,11 @@
       <artifactId>spark-core_2.10</artifactId>
       <version>${spark.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.bespin</groupId>
+      <artifactId>bespin</artifactId>
+      <version>4.0.0</version>
+    </dependency>
   </dependencies>
 
 </project>
