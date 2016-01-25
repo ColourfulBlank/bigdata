@@ -15,7 +15,7 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
   val reducers = opt[Int](descr = "number of reducers", required = false, default = Some(1))
 }
   
-object ComputeBigramRelativeFrequencyPairs extends Tokenizer {
+object ComputeBigramRelativeFrequencyStripes extends Tokenizer {
   val log = Logger.getLogger(getClass().getName())
   var sum = 0.0f;
   def tryThis(iter: Iterator[(String, Map[String -> Float])]) : Iterator[(String, Map[String -> Float])] = 
