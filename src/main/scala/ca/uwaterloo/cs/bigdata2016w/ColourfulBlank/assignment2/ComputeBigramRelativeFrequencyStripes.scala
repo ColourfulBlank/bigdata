@@ -8,31 +8,32 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.rogach.scallop._
 
-class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
-  mainOptions = Seq(input, output, reducers)
-  val input = opt[String](descr = "input path", required = true)
-  val output = opt[String](descr = "output path", required = true)
-  val reducers = opt[Int](descr = "number of reducers", required = false, default = Some(1))
-}
+
+// class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
+//   mainOptions = Seq(input, output, reducers)
+//   val input = opt[String](descr = "input path", required = true)
+//   val output = opt[String](descr = "output path", required = true)
+//   val reducers = opt[Int](descr = "number of reducers", required = false, default = Some(1))
+// }
   
 object ComputeBigramRelativeFrequencyStripes extends Tokenizer {
   val log = Logger.getLogger(getClass().getName())
   var sum = 0.0f;
-  def tryThis(iter: Iterator[(String, Map[String -> Float])]) : Iterator[(String, Map[String -> Float])] = 
+  def tryThis(iter: Iterator[(String, Map[String, Float])]) : Iterator[(String, Map[String, Float])] = 
     {
       iter.flatMap(curr => {
         sum = (curr._2)("*")
-        curr._2.keyIterator.map(kit => {
-            (curr._1, Map( (kit, (curr._2)(kit)/sum) ) )
+        curr._2.keysIterator.map(kit => {
+          if (kit != "*"){
+              (curr._1, Map( (kit, (curr._2)(kit)/sum) ) )
+            } else {
+              (curr._1, Map( (kit, sum) ) )
+            }
           })
-          // if (curr._1.lastIndexOf("*") == curr._1.length() - 1) {
-          //   sum = curr._2
-          //   (curr._1, curr._2)
-          // } else {
-          //   (curr._1, curr._2/sum)
-          // }
         })
     }
+
+
   def main(argv: Array[String]) {
     val args = new Conf(argv)
 
@@ -52,18 +53,23 @@ object ComputeBigramRelativeFrequencyStripes extends Tokenizer {
           if (tokens.length > 1) {
             tokens.sliding(2).flatMap(p => { 
               /*val pairStar = List(p.head, "*").mkString(" ")
-              List(pairStar,p.mkString(" ")) */
-              (p.head, Map(("*", 1.0f), (p.tail, 1.0f)))
+              List(pairStar,p.mkString(" ")) */ 
+              List ((p.head, Map[String, Float](("*", 1.0f), (p.tail.head, 1.0f))))
               })
           } else { 
             // List()
-            ("", Map())
+            List()
           }
         })
         // .map(bigram => (bigram, 1.0f))
-        .reduceByKey(_ + _)
+        .reduceByKey((map1, map2) => 
+           map1 ++ map2.map{ case (k,v) => k -> (v + map1.getOrElse(k,0.0f)) }
+           )
         .sortByKey()
         .mapPartitions(tryThis)
+        // .reduceByKey((map1, map2) => 
+        //    map1 ++ map2.map{ case (k,v) => k -> (v + map1.getOrElse(k,0.0f)) }
+        //    )
         .sortByKey()
 
 

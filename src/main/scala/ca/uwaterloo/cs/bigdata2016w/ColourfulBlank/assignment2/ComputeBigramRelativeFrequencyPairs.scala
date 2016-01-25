@@ -21,9 +21,15 @@ object ComputeBigramRelativeFrequencyPairs extends Tokenizer {
   def tryThis(iter: Iterator[(String, Float)]) : Iterator[(String, Float)] = 
     {
       iter.map(curr => {
-          if (curr._1.lastIndexOf("*") == curr._1.length() - 1) {
+          var line = tokenize(curr._1)
+          // println(line)
+          // println(line.length)
+          // println(curr._1.lastIndexOf('*'))
+          // println(curr._1.length())
+          // println(curr._1)
+          if (line.length == 1/*curr._1.lastIndexOf('*') == curr._1.length() - 1*/) {
             sum = curr._2
-            (curr._1, curr._2)
+            (curr._1, sum)
           } else {
             (curr._1, curr._2/sum)
           }
