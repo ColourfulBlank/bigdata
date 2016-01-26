@@ -11,22 +11,6 @@ import org.rogach.scallop._
   
 object ComputeBigramRelativeFrequencyStripes extends Tokenizer {
   val log = Logger.getLogger(getClass().getName())
-  // def tryThis(iter: Iterator[(String, Map[String, Float])]) : Iterator[(String, Map[String, Float])] = 
-  //   {
-  //     var sum = 0.0f;
-  //     iter.map(curr => {
-  //       sum = (curr._2)("*")
-  //       (curr._1, curr._2.map{ case(k,v) => {
-  //                         if (k != "*"){
-  //                             k -> v/sum
-  //                           } else {
-  //                            k -> sum
-  //                           }
-  //                         }
-  //                       })
-  //       })
-  //   }
-
 
   def main(argv: Array[String]) {
     val args = new Conf(argv)
