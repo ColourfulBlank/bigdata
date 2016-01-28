@@ -53,9 +53,9 @@ Thought: this two words are mostly occur with each other, and this two words are
 
 Q4p			0
 
-Q4s			0
+Q4s			1.5
 
-Q5p			0
+Q5p			1.5
 
 Q5s			0
 
@@ -67,17 +67,17 @@ Q6.2p		0
 
 Q6.2s		0
 
-Q7.1p		1.5
+Q7.1p		0
 
-Q7.1s		1.5
+Q7.1s		0
 
 Q7.2p		1.5
 
 Q7.2s		1.5
 
-linux p		0
+linux p		4
 
-linux s		0
+linux s		4
 
 alti p		4
 
@@ -85,7 +85,7 @@ alti s		4
 
 notes		
 
-total		30
+total		38
 
 p stands for pair, s for stripe. linux p stands for run and compile pair in linux. 
 
