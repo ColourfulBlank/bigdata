@@ -13,7 +13,7 @@
 In total: 3.8M with 4 reducers
 
 ### Question 2
-	
+
 > 105.9 M  cs489-a3-index-wiki/part-r-00000
 > 111.1 M  cs489-a3-index-wiki/part-r-00001
 > 104.6 M  cs489-a3-index-wiki/part-r-00002
