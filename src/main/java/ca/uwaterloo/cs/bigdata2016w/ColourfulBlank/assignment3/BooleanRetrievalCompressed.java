@@ -120,11 +120,11 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
     // for (PairOfInts pair : fetchPostings(term)) {
     //   set.add(pair.getLeftElement());//get index, need to parse whole loop need to change
     // }
-    PairOfWritables<IntWritable, BytesWritable> out = fetchPostings(term);
-    df = out.getLeftElement().get();
-    ByteArrayInputStream bytearrayStream = new ByteArrayInputStream(out.getRightElement().getBytes());
+    BytesWritable out = fetchPostings(term);
+    ByteArrayInputStream bytearrayStream = new ByteArrayInputStream(out.getBytes());
     DataInputStream datainputStream = new DataInputStream( bytearrayStream );
-    for (int i = 0; i < df; i++){
+    df = WritableUtils.readVInt(datainputStream);
+    for ( int i = 0; i < df; i++ ){
       indexNum = indexNum + WritableUtils.readVInt(datainputStream);
       value = WritableUtils.readVInt(datainputStream);
       set.add(indexNum);
@@ -132,10 +132,9 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
     return set;
   }
 
-  private PairOfWritables<IntWritable, BytesWritable> fetchPostings(String term) throws IOException {//change 
+  private BytesWritable fetchPostings(String term) throws IOException {//change 
     Text key = new Text();
-    PairOfWritables<IntWritable, BytesWritable> value =
-        new PairOfWritables<IntWritable, BytesWritable>();//(DF, BytesWritable(index + value))
+   BytesWritable value = new BytesWritable();//(DF, BytesWritable(index + value))
     key.set(term);
     for (int i = 0; i < NumberofFiles; i++){
       indexArray.get(i).get(key, value);  

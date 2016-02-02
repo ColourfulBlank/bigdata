@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+// import org.apache.hadoop.mapreduce.Combiner;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -86,6 +87,8 @@ public class BuildInvertedIndexCompressed extends Configured implements Tool {
       for (PairOfObjectInt<String> e : COUNTS) {
         VALUE.set( e.getRightElement() );
         context.write(new PairOfStringInt(e.getLeftElement(), (int) docno.get()), VALUE);
+        VALUE.set(1);
+        context.write(new PairOfStringInt(e.getLeftElement(), -1), VALUE);
       }
     }
   }
@@ -102,11 +105,12 @@ public class BuildInvertedIndexCompressed extends Configured implements Tool {
   // }
 
   private static class MyReducer extends
-      Reducer<PairOfStringInt, IntWritable, Text, PairOfWritables<IntWritable, BytesWritable>> {
+      Reducer<PairOfStringInt, IntWritable, Text, BytesWritable> {
     private final static IntWritable DF = new IntWritable();
     private final static Text KEY = new Text();
     private final static BytesWritable INDEX = new BytesWritable();
-    private final static PairOfWritables<IntWritable, BytesWritable> PAIR = new PairOfWritables<IntWritable, BytesWritable>();
+    // private final static PairOfWritables<IntWritable, BytesWritable> PAIR = new PairOfWritables<IntWritable, BytesWritable>();
+    private final static BytesWritable PAIR = new BytesWritable();
     private final static BytesWritable POSTINGS = new BytesWritable();
     private String currentKey = "";
     private int index;
@@ -129,30 +133,32 @@ public class BuildInvertedIndexCompressed extends Configured implements Tool {
     public void reduce(PairOfStringInt key, Iterable<IntWritable> values, Context context)
         throws IOException, InterruptedException {
       Iterator<IntWritable> iter = values.iterator();
-      if (currentKey.equals(key.getLeftElement())){
-        index = key.getRightElement() - lastindex;
-        lastindex = key.getRightElement();
-      } else {
-        if (!currentKey.equals("")){ 
+      if (key.getRightElement() == -1){
+        if(!currentKey.equals("")){
           KEY.set(currentKey);
           byte [] aArray = out.toByteArray();
-          // System.out.println(aArray.length);
           out = new ByteArrayOutputStream();
           bi = new DataOutputStream( out );
           POSTINGS.set(aArray, 0 , aArray.length);
-          DF.set(df);
-          PAIR.set(DF, POSTINGS);
+          PAIR.set(POSTINGS);
           context.write(KEY, PAIR); 
         }
-        df = 0;
+        int df = 0;
+        while (iter.hasNext()) {
+          iter.next();
+          df++;
+        }
+        WritableUtils.writeVInt(bi, df);
         currentKey = key.getLeftElement();
-        index = key.getRightElement();
+        index = key.getRightElement() == -1 ? 0 : key.getRightElement();
+        lastindex = key.getRightElement() == -1 ? 0 : key.getRightElement();//
+      } else if (currentKey.equals(key.getLeftElement())){
+        index = key.getRightElement() - lastindex;
         lastindex = key.getRightElement();
       }
         while (iter.hasNext()) {
           WritableUtils.writeVInt(bi, index);
           WritableUtils.writeVInt(bi, iter.next().get());
-          df++;
         }
         
     }
@@ -160,12 +166,10 @@ public class BuildInvertedIndexCompressed extends Configured implements Tool {
     public void cleanup(Context context) throws IOException,InterruptedException {
       KEY.set(currentKey);
       byte [] aArray = out.toByteArray();
-      System.out.println(aArray.length);
       out = new ByteArrayOutputStream();
       bi = new DataOutputStream( out );
       POSTINGS.set(aArray, 0 , aArray.length);
-      DF.set(df);
-      PAIR.set(DF, POSTINGS);
+      PAIR.set(POSTINGS);
       context.write(KEY, PAIR); 
     }
   }
@@ -227,7 +231,7 @@ public class BuildInvertedIndexCompressed extends Configured implements Tool {
     job.setMapOutputKeyClass(PairOfStringInt.class);
     job.setMapOutputValueClass(IntWritable.class);
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(PairOfWritables.class);
+    job.setOutputValueClass(BytesWritable.class);
     if (args.textOutput) {
       job.setOutputFormatClass(TextOutputFormat.class);
     } else {
