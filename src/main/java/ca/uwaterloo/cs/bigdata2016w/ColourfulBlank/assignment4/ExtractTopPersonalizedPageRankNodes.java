@@ -30,49 +30,78 @@ import org.apache.log4j.Logger;
 
 import tl.lin.data.pair.PairOfObjectFloat;
 import tl.lin.data.queue.TopScoredObjects;
+import tl.lin.data.array.ArrayListOfIntsWritable;
+import tl.lin.data.array.ArrayListOfFloatsWritable;
 
 public class ExtractTopPersonalizedPageRankNodes extends Configured implements Tool {
   private static final Logger LOG = Logger.getLogger(ExtractTopPersonalizedPageRankNodes.class);
 
   private static class MyMapper extends
-      Mapper<IntWritable, PageRankNode, IntWritable, FloatWritable> {
-    private TopScoredObjects<Integer> queue;
+      Mapper<IntWritable, PageRankNode, ArrayListOfIntsWritable, ArrayListOfFloatsWritable> {
+    // private TopScoredObjects<Integer> queue;
+    private TopScoredObjects<Integer> [] queues;
+    private int sourceNumber;
 
     @Override
     public void setup(Context context) throws IOException {
       int k = context.getConfiguration().getInt("n", 100);
-      queue = new TopScoredObjects<Integer>(k);
+      // queue = new TopScoredObjects<Integer>(k);
+      sourceNumber = context.getConfiguration().getInt("NumberOfSources", 0);
+      queues = new TopScoredObjects<Integer>[sourceNumber];
+      for (int i = 0; i < sourceNumber; i++){
+        queues[i] = new TopScoredObjects<Integer>(k);
+      }
+
     }
 
     @Override
     public void map(IntWritable nid, PageRankNode node, Context context) throws IOException,
         InterruptedException {
-      queue.add(node.getNodeId(), node.getPageRank());
+      // queue.add(node.getNodeId(), node.getPageRank());
+      for (int i = 0; i < sourceNumber; i++){
+        queues[i].add(node.getNodeId(), node.getPageRank(i));
+      }
     }
 
     @Override
     public void cleanup(Context context) throws IOException, InterruptedException {
-      IntWritable key = new IntWritable();
-      FloatWritable value = new FloatWritable();
+      // IntWritable key = new IntWritable();
+      ArrayListOfIntsWritable key = new ArrayListOfIntsWritable();
+      // FloatWritable value = new FloatWritable();
+      ArrayListOfFloatsWritable value = new ArrayListOfFloatsWritable();
 
-      for (PairOfObjectFloat<Integer> pair : queue.extractAll()) {
-        key.set(pair.getLeftElement());
-        value.set(pair.getRightElement());
-        context.write(key, value);
+      // for (PairOfObjectFloat<Integer> pair : queue.extractAll()) {
+      //   key.set(pair.getLeftElement());
+      //   value.set(pair.getRightElement());
+      //   context.write(key, value);
+      // }
+      for (int i = 0; i < sourceNumber; i++){
+        for (PairOfObjectFloat<Integer> pair : queues[i].extractAll()) {
+          key.add(pair.getLeftElement());
+          value.add(pair.getRightElement());
+          context.write(key, value);
+        }
       }
     }
   }
 
   private static class MyReducer extends
-      Reducer<IntWritable, FloatWritable, IntWritable, FloatWritable> {
-    private static TopScoredObjects<Integer> queue;
+      Reducer< ArrayListOfIntsWritable, ArrayListOfFloatsWritable, IntWritable, FloatWritable> {
+    // private static TopScoredObjects<Integer> queue;
+    private static TopScoredObjects<Integer> [] queues; 
+    private int sourceNumber;
 
     @Override
     public void setup(Context context) throws IOException {
       int k = context.getConfiguration().getInt("n", 100);
-      queue = new TopScoredObjects<Integer>(k);
+      sourceNumber = context.getConfiguration().getInt("NumberOfSources", 0);
+      // queue = new TopScoredObjects<Integer>(k);
+      queues = new TopScoredObjects<Integer>[sourceNumber];
+      for (int i = 0; i < queues.length; i++){
+        queues[i] = new TopScoredObjects<Integer>)();
+      }
     }
-
+// < +++++++++++++++ HERE
     @Override
     public void reduce(IntWritable nid, Iterable<FloatWritable> iterable, Context context)
         throws IOException {
@@ -160,6 +189,10 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
     Configuration conf = getConf();
     conf.setInt("mapred.min.split.size", 1024 * 1024 * 1024);
     conf.setInt("n", n);
+    conf.setInt("NumberOfSources", sources.length);
+    for (int i = 0; i < sources.length; i++){
+      conf.setInt("source"+i, sources[i]);
+    }
     // conf.setInt(SOURCES, s);
 
     Job job = Job.getInstance(conf);

@@ -2,7 +2,7 @@ package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment4;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -46,12 +46,15 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
 
   private static class MyMapper extends Mapper<LongWritable, Text, IntWritable, PageRankNode> {
     private static final IntWritable nid = new IntWritable();
-    private static final PageRankNode node = new PageRankNode();
+    private static PageRankNode node;// = new PageRankNode(); 4
     private int [] sources;
+    private HashSet sourcesHashSet = new HashSet();
 
     @Override
     public void setup(Mapper<LongWritable, Text, IntWritable, PageRankNode>.Context context) {
       int n = context.getConfiguration().getInt(NODE_CNT_FIELD, 0);
+      // System.out.println("NODE_CNT_FIELD: " + n);
+      // System.out.println("-log(NODE_CNT_FIELD): " + (float) -StrictMath.log(n));
       if (n == 0) {
         throw new RuntimeException(NODE_CNT_FIELD + " cannot be 0!");
       }
@@ -59,7 +62,9 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       sources = new int[sourceLength];
       for (int i = 0; i < sourceLength; i++){
         sources[i] = context.getConfiguration().getInt("source"+i, 0);
+        sourcesHashSet.add(sources[i]); 
       }
+      node = new PageRankNode(sources.length); // 4 
       node.setType(PageRankNode.Type.Complete);
       // node.setPageRank((float) -StrictMath.log(n));
     }
@@ -71,18 +76,20 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       
       nid.set(Integer.parseInt(arr[0]));
       if (arr.length == 1) {
+
         node.setNodeId(Integer.parseInt(arr[0]));
-        // node.setPageRank(1.0f);
-        node.setAdjacencyList(new ArrayListOfIntsWritable());
+        // for (int itera = 0; itera < sources.length; itera++){//4
+          node.setAdjacencyList(new ArrayListOfIntsWritable());
+        // }//4
 
       } else {//set neighbors
-        node.setNodeId(Integer.parseInt(arr[0]));
-        // System.out.println(node.getPageRank());
         int[] neighbors = new int[arr.length - 1];
+        node.setNodeId(Integer.parseInt(arr[0]));
+          
         for (int i = 1; i < arr.length; i++) {
           neighbors[i - 1] = Integer.parseInt(arr[i]);
         }
-
+        
         node.setAdjacencyList(new ArrayListOfIntsWritable(neighbors));
       }
 
@@ -92,11 +99,16 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       if (arr.length > 1) {
         context.getCounter("graph", "numActiveNodes").increment(1);
       }
-      if (node.getNodeId() == sources[0]){// need to change to become multi
-        node.setPageRank(1.0f);
-        // System.out.println(node.getPageRank());
+      if ( sourcesHashSet.contains(node.getNodeId()) ){// need to change to become multi
+        sourcesHashSet.remove(node.getNodeId());//remove the source: has been set
+        for (int itera = 0; itera < sources.length; itera++){//4
+          node.setPageRank(1.0f, itera);
+        }//4
+
       }else {
-        node.setPageRank(0.0f);
+          for (int itera = 0; itera < sources.length; itera++){//4
+          node.setPageRank(0.0f, itera);
+        }//4
       }
       context.write(nid, node);
     }

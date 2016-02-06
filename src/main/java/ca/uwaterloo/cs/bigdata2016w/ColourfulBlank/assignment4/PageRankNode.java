@@ -35,33 +35,69 @@ public class PageRankNode implements Writable {
 
   private Type type;
   private int nodeid;
-  private float pagerank;
-  private ArrayListOfIntsWritable adjacenyList;
+  // private int [] nodeids; //my change
+  // private float pagerank;
+  private float [] pageranks; //my change
+  private ArrayListOfIntsWritable adjacency;
+  // private ArrayListOfIntsWritable [] adjacencyList;
+
+  private int dumbLengthTrancker;
 
   public PageRankNode() {}
 
-  public float getPageRank() {
-    return pagerank;
+  public PageRankNode(int numOfSources) {
+    // nodeids = new int[numOfSources];
+    pageranks = new float[numOfSources];
+    adjacencyList = new ArrayListOfIntsWritable [numOfSources];
+    dumbLengthTrancker = numOfSources;
   }
 
-  public void setPageRank(float p) {
-    this.pagerank = p;
+  public float getPageRank(int index) {
+    // return pagerank;
+    return pageranks[index];
   }
 
+  public float [] getPageRankList(){//
+    return pageranks;
+  }
+
+  public void setPageRank(float p, int index) {
+    // this.pagerank = p;
+    this.pageranks[index] = p;
+  }
+  public void setPageRankList(float [] pList){
+    this.pageranks = pList;
+  }
   public int getNodeId() {
     return nodeid;
+    // return nodeids[index];
   }
+
+  // public int [] getNodeIdList(){//
+    // return nodeids;
+  // }
 
   public void setNodeId(int n) {
     this.nodeid = n;
+    // this.nodeids[index] = n;
   }
 
-  public ArrayListOfIntsWritable getAdjacenyList() {
-    return adjacenyList;
+  // public ArrayListOfIntsWritable getAdjacenyList(int index) {
+  //   // return adjacenyList;
+  //   return adjacencyList[index];
+  // }
+
+  public ArrayListOfIntsWritable getAdjacenyList() {//
+    return adjacencyList;
   }
 
+  // public void setAdjacencyList(ArrayListOfIntsWritable list, int index) {
+  //   // this.adjacenyList = list;
+  //   this.adjacencyList[index] = list;
+  // }
   public void setAdjacencyList(ArrayListOfIntsWritable list) {
-    this.adjacenyList = list;
+    // this.adjacenyList = list;
+    this.adjacencyList = list;
   }
 
   public Type getType() {
@@ -70,6 +106,9 @@ public class PageRankNode implements Writable {
 
   public void setType(Type type) {
     this.type = type;
+  }
+  public int getDumbLength(){
+    return dumbLengthTrancker;
   }
 
   /**
@@ -81,19 +120,32 @@ public class PageRankNode implements Writable {
   public void readFields(DataInput in) throws IOException {
     int b = in.readByte();
     type = mapping[b];
+    dumbLengthTrancker = in.readInt();
+    // nodeids = new int [dumbLengthTrancker];
+    pageranks = new float [dumbLengthTrancker];
+    adjacencyList = new ArrayListOfIntsWritable [dumbLengthTrancker];
+    // for (int i = 0; i < dumbLengthTrancker; i++){
+    //   nodeids[i] = in.readInt();
+    // }
     nodeid = in.readInt();
 
     if (type.equals(Type.Mass)) {
-      pagerank = in.readFloat();
+      for (int i = 0; i < dumbLengthTrancker; i++){
+        pageranks[i] = in.readFloat();  
+      }
       return;
     }
 
     if (type.equals(Type.Complete)) {
-      pagerank = in.readFloat();
+      for (int i = 0; i < dumbLengthTrancker; i++){
+        pageranks[i] = in.readFloat();  
+      }
     }
-
-    adjacenyList = new ArrayListOfIntsWritable();
-    adjacenyList.readFields(in);
+    // for (int i = 0; i < dumbLengthTrancker; i++){
+        adjacency = new ArrayListOfIntsWritable();
+        adjacency.readFields(in);
+      // }
+    
   }
 
   /**
@@ -104,24 +156,42 @@ public class PageRankNode implements Writable {
   @Override
   public void write(DataOutput out) throws IOException {
     out.writeByte(type.val);
+    out.writeInt(dumbLengthTrancker);
+    // for (int i = 0; i < dumbLengthTrancker; i++){
+    //     out.writeInt(nodeids[i]);
+    // }
     out.writeInt(nodeid);
 
     if (type.equals(Type.Mass)) {
-      out.writeFloat(pagerank);
+      for (int i = 0; i < dumbLengthTrancker; i++){
+          out.writeFloat(pageranks[i]);
+      }
+      // out.writeFloat(pagerank);
       return;
     }
 
     if (type.equals(Type.Complete)) {
-      out.writeFloat(pagerank);
+      for (int i = 0; i < dumbLengthTrancker; i++){
+          out.writeFloat(pageranks[i]);
+      }
+      // out.writeFloat(pagerank);
     }
-
-    adjacenyList.write(out);
+    // for (int i = 0; i < dumbLengthTrancker; i++){
+          adjacencyList.write(out);
+    // }
+    
   }
 
   @Override
   public String toString() {
-    return String.format("{%d %.4f %s}", nodeid, pagerank, (adjacenyList == null ? "[]"
-        : adjacenyList.toString(10)));
+    // return String.format("{%d %.4f %s}", nodeid, pagerank, (adjacenyList == null ? "[]"
+        // : adjacenyList.toString(10)));
+    String retVal = "";
+    for (int i = 0; i < dumbLengthTrancker; i++){
+      retVal = retVal + String.format("{%d %.4f %s}", nodeid, pageranks[i], (adjacencyList == null ? "[]"
+        : adjacencyList.toString(10)));
+    }
+    return retVal;
   }
 
   /**
