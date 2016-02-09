@@ -11,6 +11,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.Writable;
 
 import tl.lin.data.array.ArrayListOfIntsWritable;
+import java.util.Arrays;
 
 /**
  * Representation of a graph node for PageRank.
@@ -35,23 +36,22 @@ public class PageRankNode implements Writable {
 
   private Type type;
   private int nodeid;
-  // private int [] nodeids; //my change
   // private float pagerank;
   private float [] pageranks; //my change
   private ArrayListOfIntsWritable adjacency;
-  // private ArrayListOfIntsWritable [] adjacencyList;
 
   private int dumbLengthTrancker;
 
   public PageRankNode() {}
 
-  public PageRankNode(int numOfSources) {
-    // nodeids = new int[numOfSources];
-    pageranks = new float[numOfSources];
-    adjacencyList = new ArrayListOfIntsWritable [numOfSources];
-    dumbLengthTrancker = numOfSources;
+  // public PageRankNode(int numOfSources) {
+  //   pageranks = new float[numOfSources];
+  //   dumbLengthTrancker = numOfSources;
+  // }
+  public void setPageRankLength(int l){
+    dumbLengthTrancker = l;
+    pageranks = new float[l];
   }
-
   public float getPageRank(int index) {
     // return pagerank;
     return pageranks[index];
@@ -66,38 +66,25 @@ public class PageRankNode implements Writable {
     this.pageranks[index] = p;
   }
   public void setPageRankList(float [] pList){
+    dumbLengthTrancker = pList.length;
     this.pageranks = pList;
   }
   public int getNodeId() {
     return nodeid;
     // return nodeids[index];
   }
-
-  // public int [] getNodeIdList(){//
-    // return nodeids;
-  // }
-
   public void setNodeId(int n) {
     this.nodeid = n;
     // this.nodeids[index] = n;
   }
 
-  // public ArrayListOfIntsWritable getAdjacenyList(int index) {
-  //   // return adjacenyList;
-  //   return adjacencyList[index];
-  // }
-
-  public ArrayListOfIntsWritable getAdjacenyList() {//
-    return adjacencyList;
+  public ArrayListOfIntsWritable getAdjacencyList() {//
+    return adjacency;
   }
 
-  // public void setAdjacencyList(ArrayListOfIntsWritable list, int index) {
-  //   // this.adjacenyList = list;
-  //   this.adjacencyList[index] = list;
-  // }
   public void setAdjacencyList(ArrayListOfIntsWritable list) {
     // this.adjacenyList = list;
-    this.adjacencyList = list;
+    this.adjacency = list;
   }
 
   public Type getType() {
@@ -108,6 +95,7 @@ public class PageRankNode implements Writable {
     this.type = type;
   }
   public int getDumbLength(){
+    dumbLengthTrancker = pageranks.length;
     return dumbLengthTrancker;
   }
 
@@ -121,12 +109,7 @@ public class PageRankNode implements Writable {
     int b = in.readByte();
     type = mapping[b];
     dumbLengthTrancker = in.readInt();
-    // nodeids = new int [dumbLengthTrancker];
     pageranks = new float [dumbLengthTrancker];
-    adjacencyList = new ArrayListOfIntsWritable [dumbLengthTrancker];
-    // for (int i = 0; i < dumbLengthTrancker; i++){
-    //   nodeids[i] = in.readInt();
-    // }
     nodeid = in.readInt();
 
     if (type.equals(Type.Mass)) {
@@ -141,10 +124,9 @@ public class PageRankNode implements Writable {
         pageranks[i] = in.readFloat();  
       }
     }
-    // for (int i = 0; i < dumbLengthTrancker; i++){
-        adjacency = new ArrayListOfIntsWritable();
-        adjacency.readFields(in);
-      // }
+    
+    adjacency = new ArrayListOfIntsWritable();
+    adjacency.readFields(in);
     
   }
 
@@ -157,9 +139,6 @@ public class PageRankNode implements Writable {
   public void write(DataOutput out) throws IOException {
     out.writeByte(type.val);
     out.writeInt(dumbLengthTrancker);
-    // for (int i = 0; i < dumbLengthTrancker; i++){
-    //     out.writeInt(nodeids[i]);
-    // }
     out.writeInt(nodeid);
 
     if (type.equals(Type.Mass)) {
@@ -176,9 +155,7 @@ public class PageRankNode implements Writable {
       }
       // out.writeFloat(pagerank);
     }
-    // for (int i = 0; i < dumbLengthTrancker; i++){
-          adjacencyList.write(out);
-    // }
+    adjacency.write(out);
     
   }
 
@@ -186,11 +163,11 @@ public class PageRankNode implements Writable {
   public String toString() {
     // return String.format("{%d %.4f %s}", nodeid, pagerank, (adjacenyList == null ? "[]"
         // : adjacenyList.toString(10)));
-    String retVal = "";
-    for (int i = 0; i < dumbLengthTrancker; i++){
-      retVal = retVal + String.format("{%d %.4f %s}", nodeid, pageranks[i], (adjacencyList == null ? "[]"
-        : adjacencyList.toString(10)));
+    String retVal = String.format("{ID: %d ", nodeid);
+    for (int i = 0; i < pageranks.length; i++){
+      retVal = retVal + String.format(" PageRank"+i+": %.4f ", pageranks[i]);  
     }
+    retVal = retVal + String.format("list: %s}", (adjacency == null ? "[]" : adjacency.toString(10)));
     return retVal;
   }
 

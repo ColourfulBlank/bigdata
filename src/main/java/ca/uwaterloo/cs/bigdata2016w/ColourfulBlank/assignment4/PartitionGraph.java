@@ -121,6 +121,9 @@ public class PartitionGraph extends Configured implements Tool {
     if (useRange) {
       job.setPartitionerClass(RangePartitioner.class);
     }
+     else {
+      job.setPartitionerClass(HashPartitioner.class);
+    }
 
     FileSystem.get(conf).delete(new Path(outPath), true);
 

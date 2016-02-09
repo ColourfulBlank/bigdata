@@ -22,6 +22,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
@@ -46,15 +47,13 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
 
   private static class MyMapper extends Mapper<LongWritable, Text, IntWritable, PageRankNode> {
     private static final IntWritable nid = new IntWritable();
-    private static PageRankNode node;// = new PageRankNode(); 4
-    private int [] sources;
+    private static PageRankNode node = new PageRankNode();
+    private int [] sources; 
     private HashSet sourcesHashSet = new HashSet();
 
     @Override
     public void setup(Mapper<LongWritable, Text, IntWritable, PageRankNode>.Context context) {
       int n = context.getConfiguration().getInt(NODE_CNT_FIELD, 0);
-      // System.out.println("NODE_CNT_FIELD: " + n);
-      // System.out.println("-log(NODE_CNT_FIELD): " + (float) -StrictMath.log(n));
       if (n == 0) {
         throw new RuntimeException(NODE_CNT_FIELD + " cannot be 0!");
       }
@@ -63,8 +62,11 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       for (int i = 0; i < sourceLength; i++){
         sources[i] = context.getConfiguration().getInt("source"+i, 0);
         sourcesHashSet.add(sources[i]); 
+        // System.out.println("source"+i+": " + sources[i]);
       }
-      node = new PageRankNode(sources.length); // 4 
+      // System.out.println(Arrays.toString(sources));
+      // node = new PageRankNode(sources.length); // 4 
+      node.setPageRankLength(sources.length);
       node.setType(PageRankNode.Type.Complete);
       // node.setPageRank((float) -StrictMath.log(n));
     }
@@ -78,14 +80,13 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       if (arr.length == 1) {
 
         node.setNodeId(Integer.parseInt(arr[0]));
-        // for (int itera = 0; itera < sources.length; itera++){//4
-          node.setAdjacencyList(new ArrayListOfIntsWritable());
-        // }//4
+        node.setAdjacencyList(new ArrayListOfIntsWritable());
 
       } else {//set neighbors
-        int[] neighbors = new int[arr.length - 1];
+        
         node.setNodeId(Integer.parseInt(arr[0]));
-          
+
+        int[] neighbors = new int[arr.length - 1];  
         for (int i = 1; i < arr.length; i++) {
           neighbors[i - 1] = Integer.parseInt(arr[i]);
         }
@@ -99,17 +100,29 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
       if (arr.length > 1) {
         context.getCounter("graph", "numActiveNodes").increment(1);
       }
-      if ( sourcesHashSet.contains(node.getNodeId()) ){// need to change to become multi
-        sourcesHashSet.remove(node.getNodeId());//remove the source: has been set
-        for (int itera = 0; itera < sources.length; itera++){//4
-          node.setPageRank(1.0f, itera);
-        }//4
-
-      }else {
-          for (int itera = 0; itera < sources.length; itera++){//4
-          node.setPageRank(0.0f, itera);
-        }//4
+      //first set all to log(0)
+      for (int itera = 0; itera < sources.length; itera++){
+        node.setPageRank(Float.NEGATIVE_INFINITY, itera);
       }
+      //Then change source to log(1)
+      if ( sourcesHashSet.contains(node.getNodeId()) ){// need to change to become multi
+        // System.out.println("nodeGetNodeId: " + node.getNodeId());
+        int thisSourceIndex = 0;
+        for (int iterator = 0; iterator < sources.length; iterator++){
+          if (sources[iterator] == node.getNodeId()){
+            thisSourceIndex = iterator;
+            break;
+          }
+        }
+        sourcesHashSet.remove(node.getNodeId());//remove the source: has been set
+        node.setPageRank(0.0f, thisSourceIndex);
+      }
+
+      // if (nid.get() == 367){
+      //   System.out.println(node.toString());
+      // } else if (nid.get() == 249){
+      //   System.out.println(node.toString());
+      // }
       context.write(nid, node);
     }
   }
@@ -176,8 +189,6 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
 
     Configuration conf = getConf();
     conf.setInt(NODE_CNT_FIELD, n);
-    //setInt sources
-    // conf.setInt(SOURCES, s);
     conf.setInt("mapred.min.split.size", 1024 * 1024 * 1024);
     conf.setInt("NumberOfSources", sources.length);
     for (int i = 0; i < sources.length; i++){
@@ -194,7 +205,11 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
     FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
     job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(SequenceFileOutputFormat.class);
+     // if (args.textOutput) {
+      // job.setOutputFormatClass(TextOutputFormat.class);
+    // } else {
+      job.setOutputFormatClass(SequenceFileOutputFormat.class);
+    // }
 
     job.setMapOutputKeyClass(IntWritable.class);
     job.setMapOutputValueClass(PageRankNode.class);
