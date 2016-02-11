@@ -66,7 +66,6 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
             System.out.println(node.toString());
           }
       for (int i = 0; i < sourceNumber; i++){
-          // System.out.println(node.toString());
         queues[i].add(node.getNodeId(), node.getPageRank(i));
       }
     }
@@ -118,12 +117,10 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
     public void cleanup(Context context) throws IOException, InterruptedException {
       IntWritable key = new IntWritable();
       FloatWritable value = new FloatWritable();
-      for (int i = 0; i < queues.length; i++){
+      for (int i = 0; i < queues.length; i++){ 
         for (PairOfObjectFloat<Integer> pair : queues[i].extractAll()) {
           key.set(pair.getLeftElement());
           value.set((float) StrictMath.exp(pair.getRightElement()));
-          System.out.print(pair.getRightElement()
-          System.out.println(pair.getLeftElement())
           context.write(value, key);
         }
       }
@@ -134,6 +131,7 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
     public int getPartition(IntWritable key, PairOfIntFloat value, int numReduceTasks) {
       return (key.hashCode()& Integer.MAX_VALUE) % numReduceTasks;//(key.getLeftElement().hashCode() & Integer.MAX_VALUE) % numReduceTasks;
     }
+
   }
 
   public ExtractTopPersonalizedPageRankNodes() {
