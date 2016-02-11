@@ -64,11 +64,8 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
         sourcesHashSet.add(sources[i]); 
         // System.out.println("source"+i+": " + sources[i]);
       }
-      // System.out.println(Arrays.toString(sources));
-      // node = new PageRankNode(sources.length); // 4 
       node.setPageRankLength(sources.length);
       node.setType(PageRankNode.Type.Complete);
-      // node.setPageRank((float) -StrictMath.log(n));
     }
 
     @Override

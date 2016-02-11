@@ -303,6 +303,9 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
       missingMasses = new float[missingMassLength];
       for (int i = 0; i < missingMassLength; i++){
         missingMasses[i] = conf.getFloat("MissingMass" + i, 0.0f); /// log change?
+        if(missingMasses[i] < 0.0f) {
+          missingMasses[i] = 0.0f;
+        }
       }
       nodeCnt = conf.getInt("NodeCount", 0);
       // System.out.println(Arrays.toString(missingMasses));
@@ -473,29 +476,15 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
     // Each iteration consists of two phases (two MapReduce jobs).
 
     // Job 1: distribute PageRank mass along outgoing edges.
-    // float mass = phase1(i, j, basePath, numNodes, useCombiner);
     float [] masses = phase1(i, j, basePath, numNodes, useCombiner, sources);
-    // System.out.println();
-    // System.out.println();
-    // System.out.println();
-    // System.out.println("Iter: " + i +"  "+ Arrays.toString(masses));
-    // System.out.println();
-    // System.out.println();
-    // System.out.println();
+    
     // Find out how much PageRank mass got lost at the dangling nodes.
     float [] missings = new float[masses.length];
     for (int k = 0; k < missings.length; k++){
       missings[k] = 1.0f - (float) StrictMath.exp(masses[k]);
     }
-    // System.out.println();
-    // System.out.println();
-    // System.out.println();
-    // System.out.println("Iter: " + i +"  "+ Arrays.toString(missings));
-    // System.out.println();
-    // System.out.println();
-    // System.out.println();
+    
     // Job 2: distribute missing mass, take care of random jump factor.
-    // phase2(i, j, missing, basePath, numNodes, sources);
     phase2(i, j, missings, basePath, numNodes, sources);
   }
 
@@ -567,21 +556,18 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
     job.waitForCompletion(true);
     System.out.println("Job Finished in " + (System.currentTimeMillis() - startTime) / 1000.0 + " seconds");
 
-    // float mass = Float.NEGATIVE_INFINITY;
-    // float mass = 0.0f;
     float [] masses = new float [sources.length];
     for (int ii = 0; ii < masses.length; ii++){
       masses[ii] = Float.NEGATIVE_INFINITY;
     }
-    // System.out.println(Arrays.toString(masses));
+
     FileSystem fs = FileSystem.get(getConf());
     for (FileStatus f : fs.listStatus(new Path(outm))) {
       FSDataInputStream fin = fs.open(f.getPath());
       for (int ii = 0; ii < masses.length; ii++){
         masses[ii] = sumLogProbs(masses[ii], fin.readFloat());
-        // System.out.println("masses: " + ii + ": " + masses[ii]);
       } 
-      fin.close();//??
+      fin.close();
 
     }
 
@@ -612,7 +598,6 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
 
     job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", false);
     job.getConfiguration().setBoolean("mapred.reduce.tasks.speculative.execution", false);
-    // job.getConfiguration().setFloat("MissingMass", (float) missing);
     job.getConfiguration().setInt("MissingMassLength",  missing.length);
     for (int iter = 0; iter < missing.length; iter++){
       job.getConfiguration().setFloat("MissingMass"+iter, (float) missing[iter]);
@@ -661,82 +646,5 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
 
     return (float) (a + StrictMath.log1p(StrictMath.exp(b - a)));
   }
-  // private static float sumProbs(float a, float b) {
-  //   if (a == Float.NEGATIVE_INFINITY)
-  //     return b;
-
-  //   if (b == Float.NEGATIVE_INFINITY)
-  //     return a;
-
-  //   return (float) (a + b);
-  // }
 }
-  // // Mapper with in-mapper combiner optimization.
-  // private static class MapWithInMapperCombiningClass extends
-  //     Mapper<IntWritable, PageRankNode, IntWritable, PageRankNode> {
-  //   // For buffering PageRank mass contributes keyed by destination node.
-  //   private static final HMapIF map = new HMapIF();
-
-  //   // For passing along node structure.
-  //   private static final PageRankNode intermediateStructure = new PageRankNode();
-
-  //   @Override
-  //   public void map(IntWritable nid, PageRankNode node, Context context)
-  //       throws IOException, InterruptedException {
-  //     // Pass along node structure.
-  //     intermediateStructure.setNodeId(node.getNodeId());
-  //     intermediateStructure.setType(PageRankNode.Type.Structure);
-  //     intermediateStructure.setAdjacencyList(node.getAdjacenyList());
-
-  //     context.write(nid, intermediateStructure);
-
-  //     int massMessages = 0;
-  //     int massMessagesSaved = 0;
-
-  //     // Distribute PageRank mass to neighbors (along outgoing edges).
-  //     if (node.getAdjacenyList().size() > 0) {
-  //       // Each neighbor gets an equal share of PageRank mass.
-  //       ArrayListOfIntsWritable list = node.getAdjacenyList();
-  //       float mass = node.getPageRank() - (float) StrictMath.log(list.size());
-
-  //       context.getCounter(PageRank.edges).increment(list.size());
-
-  //       // Iterate over neighbors.
-  //       for (int i = 0; i < list.size(); i++) {
-  //         int neighbor = list.get(i);
-
-  //         if (map.containsKey(neighbor)) {
-  //           // Already message destined for that node; add PageRank mass contribution.
-  //           massMessagesSaved++;
-  //           map.put(neighbor, sumLogProbs(map.get(neighbor), mass));
-  //         } else {
-  //           // New destination node; add new entry in map.
-  //           massMessages++;
-  //           map.put(neighbor, mass);
-  //         }
-  //       }
-  //     }
-
-  //     // Bookkeeping.
-  //     context.getCounter(PageRank.nodes).increment(1);
-  //     context.getCounter(PageRank.massMessages).increment(massMessages);
-  //     context.getCounter(PageRank.massMessagesSaved).increment(massMessagesSaved);
-  //   }
-
-  //   @Override
-  //   public void cleanup(Context context) throws IOException, InterruptedException {
-  //     // Now emit the messages all at once.
-  //     IntWritable k = new IntWritable();
-  //     PageRankNode mass = new PageRankNode();
-
-  //     for (MapIF.Entry e : map.entrySet()) {
-  //       k.set(e.getKey());
-
-  //       mass.setNodeId(e.getKey());
-  //       mass.setType(PageRankNode.Type.Mass);
-  //       mass.setPageRank(e.getValue());
-
-  //       context.write(k, mass);
-  //     }
-  //   }
-  // }
+  

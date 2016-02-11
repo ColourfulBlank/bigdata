@@ -84,7 +84,7 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
   }
 
   private static class MyReducer extends
-      Reducer< IntWritable, PairOfIntFloat, IntWritable, FloatWritable> {
+      Reducer< IntWritable, PairOfIntFloat, FloatWritable, IntWritable> {
     // private TopScoredObjects<Integer> queue;
     private static TopScoredObjects<Integer> [] queues; 
     private int sourceNumber;
@@ -104,7 +104,6 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
     public void reduce(IntWritable nid, Iterable<PairOfIntFloat> iterable, Context context)
         throws IOException {
       Iterator<PairOfIntFloat> pair = iterable.iterator();
-      System.out.println(nid.get());
       while (pair.hasNext()){
         PairOfIntFloat current = pair.next();
         queues[nid.get()].add(current.getLeftElement(), current.getRightElement());
@@ -123,7 +122,9 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
         for (PairOfObjectFloat<Integer> pair : queues[i].extractAll()) {
           key.set(pair.getLeftElement());
           value.set((float) StrictMath.exp(pair.getRightElement()));
-          context.write(key, value);
+          System.out.print(pair.getRightElement()
+          System.out.println(pair.getLeftElement())
+          context.write(value, key);
         }
       }
     }
@@ -218,8 +219,8 @@ public class ExtractTopPersonalizedPageRankNodes extends Configured implements T
     job.setMapOutputKeyClass(IntWritable.class);
     job.setMapOutputValueClass(PairOfIntFloat.class);
 
-    job.setOutputKeyClass(IntWritable.class);
-    job.setOutputValueClass(FloatWritable.class);
+    job.setOutputKeyClass(FloatWritable.class);
+    job.setOutputValueClass(IntWritable.class);
 
     job.setMapperClass(MyMapper.class);
     job.setReducerClass(MyReducer.class);
