@@ -55,7 +55,7 @@ import com.google.common.base.Preconditions;
  * </p>
  *
  * @see RunPageRankSchimmy
- * @author Jimmy Lin 
+ * @author Jimmy Lin  
  * @author Michael Schatz
  */
 public class RunPersonalizedPageRankBasic extends Configured implements Tool {
@@ -118,11 +118,6 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
             intermediateMass.setType(PageRankNode.Type.Mass);
             intermediateMass.setPageRankList(masses); 
             // Emit messages with PageRank mass to neighbors.
-            // if (nid.get() == 367){
-            //   System.out.println();
-            //   System.out.println("P1 end: Map_mass:" + intermediateMass.toString());
-            //   System.out.println();
-            // }
             context.write(neighbor, intermediateMass);
             massMessages++;
           }
@@ -159,11 +154,6 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
       for (PageRankNode n : values) {
         if (n.getType() == PageRankNode.Type.Structure) {
           // Simply pass along node structure.
-        //   if (nid.get() == 367){
-        //   System.out.println();
-        //   System.out.println("P1 end: Combiner_Stucture: " +n.getNodeId());
-        //   System.out.println();
-        // }
           context.write(nid, n);
         } else {
           // Accumulate PageRank mass contributions.
@@ -179,11 +169,6 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
         intermediateMass.setNodeId(nid.get());
         intermediateMass.setType(PageRankNode.Type.Mass);
         intermediateMass.setPageRankList(masses);
-        // if (nid.get() == 367){
-        //   System.out.println();
-        //   System.out.println("P1 end: Combiner_mass:" + intermediateMass.toString());
-        //   System.out.println();
-        // }
         context.write(nid, intermediateMass);
       }
     }
@@ -251,12 +236,17 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
       // Error checking.
       if (structureReceived == 1) { 
         // Everything checks out, emit final node structure with updated PageRank value.
+        // System.out.println(node.toString());
+        // System.out.println(node.toString());// <--------- HERE MAY WRONG
         context.write(nid, node);
 
         // Keep track of total PageRank mass.
+        // System.out.println("TOTALMASS" + Arrays.toString(totalMasses));
         for (int i = 0; i < totalMasses.length; i++){
           totalMasses[i] = sumLogProbs(totalMasses[i], masses[i]);  
         }
+        // System.out.println("masses" + Arrays.toString(masses));
+        // System.out.println("totalmasses" + Arrays.toString(totalMasses));
         
       } else if (structureReceived == 0) {
         // We get into this situation if there exists an edge pointing to a node which has no
@@ -286,9 +276,12 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
       // Write to a file the amount of PageRank mass we've seen in this reducer.
       FileSystem fs = FileSystem.get(context.getConfiguration());
       FSDataOutputStream out = fs.create(new Path(path + "/" + taskId), false);
+
       for (int i = 0; i < totalMasses.length; i++){
+        // System.out.print(totalMasses[i] + " ");
         out.writeFloat(totalMasses[i]);
       }
+      // System.out.println("");
       out.close();
     }
   }
@@ -312,7 +305,7 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
         missingMasses[i] = conf.getFloat("MissingMass" + i, 0.0f); /// log change?
       }
       nodeCnt = conf.getInt("NodeCount", 0);
-
+      // System.out.println(Arrays.toString(missingMasses));
       int sourceLength = context.getConfiguration().getInt("NumberOfSources", 0);
       sources = new int[sourceLength];
       sourcesHashset = new HashSet();
@@ -326,34 +319,49 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
     @Override
     public void map(IntWritable nid, PageRankNode node, Context context)
         throws IOException, InterruptedException {
-        // System.out.println(node.toString());
-      // if (nid.get() == 367){
-      //   System.out.println(node.toString());
-      // } else if (nid.get() == 249){
-      //   System.out.println(node.toString());
-      // }
+          // if (nid.get() == 249){
+          //   System.out.println(node.toString());// <--------- HERE MAY WRONG
+          // }
       float [] pList = node.getPageRankList();
-
+      // System.out.println(Arrays.toString(missingMasses));
+      // System.out.println(Arrays.toString(pList));
+      if (nid.get() == 249){
+        // System.out.println(node.toString());// <--------- HERE MAY WRONG
+        // System.out.println(Arrays.toString(pList));
+      }
       float jump;
       float link;
-      for (int i = 0; i < pList.length; i++){
-        if (sourcesHashset.contains(node.getNodeId())){ //need chagen to multi source
-          sourcesHashset.remove(node.getNodeId());
-          jump = (float) StrictMath.log(ALPHA);
-          link = (float) StrictMath.log(1.0f - ALPHA) + sumLogProbs(pList[i], (float) StrictMath.log(missingMasses[i]));
-        } else {
-          jump = (float) StrictMath.log(0.0f);
-          link = (float) StrictMath.log(1.0f - ALPHA) + pList[i];
+      int thisSourceIndex = -1;
+      if (sourcesHashset.contains(node.getNodeId())){ //need chagen to multi source
+        
+        for (int iterator = 0; iterator < sources.length; iterator++){
+          if (sources[iterator] == node.getNodeId()){
+            thisSourceIndex = iterator;
+            break;    
+          }
         }
+        sourcesHashset.remove(node.getNodeId());
+      }
+      // if (nid.get() == 249){
+      //   System.out.println(sourcesHashset.toString());
+      // }
+      
+      for (int i = 0; i < pList.length; i++){
+          if (thisSourceIndex == i) {
+            jump = (float) StrictMath.log(ALPHA);
+            link = (float) StrictMath.log(1.0f - ALPHA) + sumLogProbs(pList[i], (float) StrictMath.log(missingMasses[i]));  
+          } else {
+            jump = (float) StrictMath.log(0.0f);
+            link = (float) StrictMath.log(1.0f - ALPHA) + pList[i];
+          }
         pList[i] = sumLogProbs(jump, link);
         // node.setPageRank(pList[i], i);
       } 
-      node.setPageRankList(pList);
-      // if (nid.get() == 367){
-      //   System.out.println();
-      //   System.out.println("P2 end: sourceNode:" + node.toString());
-      //   System.out.println();
+      // if (nid.get() == 249){
+      //   System.out.println(Arrays.toString(pList));
       // }
+      node.setPageRankList(pList);
+
       context.write(nid, node);
     }
   }
@@ -467,7 +475,13 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
     // Job 1: distribute PageRank mass along outgoing edges.
     // float mass = phase1(i, j, basePath, numNodes, useCombiner);
     float [] masses = phase1(i, j, basePath, numNodes, useCombiner, sources);
-
+    // System.out.println();
+    // System.out.println();
+    // System.out.println();
+    // System.out.println("Iter: " + i +"  "+ Arrays.toString(masses));
+    // System.out.println();
+    // System.out.println();
+    // System.out.println();
     // Find out how much PageRank mass got lost at the dangling nodes.
     float [] missings = new float[masses.length];
     for (int k = 0; k < missings.length; k++){
@@ -559,11 +573,13 @@ public class RunPersonalizedPageRankBasic extends Configured implements Tool {
     for (int ii = 0; ii < masses.length; ii++){
       masses[ii] = Float.NEGATIVE_INFINITY;
     }
+    // System.out.println(Arrays.toString(masses));
     FileSystem fs = FileSystem.get(getConf());
     for (FileStatus f : fs.listStatus(new Path(outm))) {
       FSDataInputStream fin = fs.open(f.getPath());
       for (int ii = 0; ii < masses.length; ii++){
         masses[ii] = sumLogProbs(masses[ii], fin.readFloat());
+        // System.out.println("masses: " + ii + ": " + masses[ii]);
       } 
       fin.close();//??
 

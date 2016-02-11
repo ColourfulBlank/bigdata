@@ -117,12 +117,7 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
         sourcesHashSet.remove(node.getNodeId());//remove the source: has been set
         node.setPageRank(0.0f, thisSourceIndex);
       }
-
-      // if (nid.get() == 367){
-      //   System.out.println(node.toString());
-      // } else if (nid.get() == 249){
-      //   System.out.println(node.toString());
-      // }
+      
       context.write(nid, node);
     }
   }
@@ -205,11 +200,8 @@ public class BuildPersonalizedPageRankRecords extends Configured implements Tool
     FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
     job.setInputFormatClass(TextInputFormat.class);
-     // if (args.textOutput) {
-      // job.setOutputFormatClass(TextOutputFormat.class);
-    // } else {
-      job.setOutputFormatClass(SequenceFileOutputFormat.class);
-    // }
+    
+    job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
     job.setMapOutputKeyClass(IntWritable.class);
     job.setMapOutputValueClass(PageRankNode.class);
