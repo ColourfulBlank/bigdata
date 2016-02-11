@@ -33,7 +33,25 @@ In total: 433.4M with 4 reducers
 + Amazon.com
 + Criticism of Facebook
 
+Marks
 
+Q1 5
+Q2a 5
+Q2b 5
+Q3 5
+
+Q4 5
+Q5a 4
+Q5b 4
+Q6 4
+
+AC 5
+LC 5
+
+Total 47
+
+Comments
+- Altiscale queries print entire document
 
 
 
