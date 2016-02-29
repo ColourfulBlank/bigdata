@@ -61,12 +61,11 @@ object Q6 extends Tokenizer {
                           .map (list => {
                             val ct = list._2(5)
                             (list._1._1, list._1._2, List(list._2(0), list._2(1), list._2(2), list._2(3), list._2(0)/ct, list._2(1)/ct,list._2(4)/ct, ct))
-                            list
                             })
+                          .collect()
                           .foreach(println)
 
-                          // .count()
-    // println ("ANSWER=" + counter)
+
     
   }
 }

@@ -78,7 +78,7 @@ object Q4 extends Tokenizer {
                             (list(0), list(1))//orderkey, custkey
                             })
                           .filter(tuple => {//o_custkey = c_custkey
-                            val nationkey = broadCastCustomer.value(tuple._2)//getOrElse(tuple._1, "")
+                            val nationkey = broadCastCustomer.value.getOrElse(tuple._2, "")
                             broadCastNation.value.contains(nationkey)
                             })
 
@@ -89,13 +89,15 @@ object Q4 extends Tokenizer {
                           })
                         .filter(x => {!x._2._2.isEmpty && !x._2._1.isEmpty})
                         .map(line => {
-                          val nationkey = broadCastCustomer.value(line._2._1.head)
-                            ((nationkey.toInt, broadCastNation.value.getOrElse(nationkey, "")), 1)
+                          val nationkey = broadCastCustomer.value.getOrElse(line._2._1.head, "")
+                            ((nationkey, broadCastNation.value.getOrElse(nationkey, "")), 1)
                           })
                         .reduceByKey(_ + _)
-                        .map(line => (line._1._1, line._1._2, line._2))
-                        .sortBy(_._1)
+                        .map(line => (line._1._1.toInt, line._1._2, line._2))
+                        .sortBy(_._1.toInt)
+                        .collect()
                         .foreach(println)
+                        // println(end)
 
   }
 }
