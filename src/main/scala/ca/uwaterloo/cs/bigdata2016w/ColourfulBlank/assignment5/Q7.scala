@@ -82,12 +82,13 @@ object Q7 extends Tokenizer {
                               !x._2.isEmpty && !x._3.isEmpty
                             })
                             .map(line => {
-                               (List(line._3.head(0), line._1, line._3.head(1),line._3.head(2)) , (line._2.sum, line._2.toList.length))
+                               (List(line._3.head(0), line._1, line._3.head(1),line._3.head(2)) , line._2.sum/*, line._2.toList.length)*/)
                               })
-                            .reduceByKey((x, y) => {(x._1 + y._1, x._2 + y._2)} )
-                            .map(line => (line._1, line._2._1/line._2._2))
+                            .reduceByKey(_ + _)/*(x, y) => {(x._1 + y._1, x._2 + y._2)} )*/
+                            // .map(line => (line._1, line._2._1/line._2._2))
                             .sortBy(_._2)
                             .take(10)
+                            // .collect
                             .foreach(println)
   }
 }
