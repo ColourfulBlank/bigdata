@@ -51,7 +51,7 @@ object Q7 extends Tokenizer {
                                       ) 
     val ordersSimp = orders.map(line => {
                               val list = line.split('|')
-                              List(list(0), list(1), list(4), list(5))//o_orderkey o_custkey o_orderdate o_shippriority
+                              List(list(0), list(1), list(4), list(7))//o_orderkey o_custkey o_orderdate o_shippriority
                               })
                               .filter(list => {
                                 val cDate = format.parse(list(2))
