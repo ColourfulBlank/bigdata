@@ -36,16 +36,13 @@ object Q1 extends Tokenizer {
     val conf = new SparkConf().setAppName("A5Q1")
     val sc = new SparkContext(conf)
     val date = args.date().split('-')
-    // val customer = sc.textFile(iter.next)// TPC-H-0.1-TXT/customer.tbl
     val lineitem = sc.textFile(args.input() + "/lineitem.tbl")// TPC-H-0.1-TXT/lineitem.tbl
     var counter = lineitem
                           .map(line => line.split('|')(10))
                           .filter(list => {
                               var retbool = true
                               val cDate = list.split('-')
-                              // println("DATE: " + date.length + " CDATE: " + cDate.length)
                               for (i <- 0 until date.length){
-                                // println("I: " + i )
                                 if (! date(i).equals(cDate(i))){
                                   retbool = false
                                 }
@@ -54,25 +51,5 @@ object Q1 extends Tokenizer {
                           })
                           .count()
     println ("ANSWER=" + counter)
-    // val textFile = sc.textFile(args.input()) //list of string
-    // val counts = textFile.flatMap(line => {
-    //       val tokens = tokenize(line)
-    //       if (tokens.length > 1) {
-    //         tokens.sliding(2).flatMap(p => { 
-    //           val pairStar = List(p.head, "*").mkString(" ")
-    //           List(pairStar,p.mkString(" ")) })
-
-    //       } else { 
-    //         List()
-    //       }
-    //     })
-    //     .map(bigram => (bigram, 1.0f))
-    //     .reduceByKey(_ + _)
-    //     .sortByKey()
-    //     .mapPartitions(tryThis)
-    //     .sortByKey()
-
-
-    //   counts.saveAsTextFile(args.output())
   }
 }

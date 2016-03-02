@@ -68,7 +68,7 @@ object Q5 extends Tokenizer {
                             broadCastNation.value.contains(nationkey)
                             })
 
-println("UNITED STATES: ")
+// println("UNITED STATES: ")
     val us = orderSimp
                         .cogroup(lineSimp)
                         .map(line => {
@@ -92,9 +92,10 @@ println("UNITED STATES: ")
                         .flatMap(list => list)
                         .reduceByKey(_ + _)
                         .sortBy(_._2)
+                        .map(line => (line._1, "UNITED STATES", line._2))
                         .collect()
                         .foreach(println)
-println("CANADA: ")
+// println("CANADA: ")
     val ca = orderSimp
                         .cogroup(lineSimp)
                         .map(line => {
@@ -115,11 +116,10 @@ println("CANADA: ")
                                             })
                           count
                           })
-                        // .count()
-                        // println(ca)
                         .flatMap(list => list) 
                         .reduceByKey(_ + _)
                         .sortBy(_._2)
+                        .map(line => (line._1, "CANADA", line._2))
                         .collect()
                         .foreach(println)
                                               // .foreach(println)
