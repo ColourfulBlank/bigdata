@@ -67,8 +67,9 @@ object Q2 extends Tokenizer {
                       })
                     .filter(x => {!x._2._2.isEmpty})
                     .sortByKey()
-                    .map(line => {
-                        (line._2._1.head , line._1)
+                    .flatMap(line => {
+                        val item = line._2._2//.toList.sliding(1)
+                        item.map(temp => (line._2._1.head , line._1))
                       })
                     .take(20)
                     .foreach(println)
