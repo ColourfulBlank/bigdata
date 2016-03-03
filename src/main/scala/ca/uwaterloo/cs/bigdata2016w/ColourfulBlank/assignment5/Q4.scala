@@ -90,7 +90,7 @@ object Q4 extends Tokenizer {
                         .filter(x => {!x._2._2.isEmpty && !x._2._1.isEmpty})
                         .map(line => {
                           val nationkey = broadCastCustomer.value.getOrElse(line._2._1.head, "")
-                            ((nationkey, broadCastNation.value.getOrElse(nationkey, "")), 1)
+                            ((nationkey, broadCastNation.value.getOrElse(nationkey, "")), line._2._2.toList.length)
                           })
                         .reduceByKey(_ + _)
                         .map(line => (line._1._1.toInt, line._1._2, line._2))
