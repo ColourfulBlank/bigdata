@@ -1,0 +1,89 @@
+package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment6
+
+import ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment6.Tokenizer
+import ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment6.Conf_TrainSpamClassifier
+
+
+import org.apache.log4j._
+import org.apache.hadoop.fs._
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.rogach.scallop._
+import org.apache.spark.rdd.RDD
+import scala.math._
+
+import java.util.Date
+import java.io.File
+import java.text.DateFormat
+
+   
+object TrainSpamClassifier extends Tokenizer {
+  val log = Logger.getLogger(getClass().getName())
+  // w is the weight vector (make sure the variable is within scope)
+      
+  def main(argv: Array[String]) {
+    val args = new Conf_TrainSpamClassifier(argv)
+    log.info("Input: " + args.input())
+    log.info("Model: " + args.model())
+    log.info("Shuffle: " + args.shuffle.isSupplied)
+    val shuffle = args.shuffle.isSupplied
+    println(shuffle.getClass)
+    
+    val conf = new SparkConf().setAppName("=O=")
+    val sc = new SparkContext(conf)
+    val textFile = sc.textFile(args.input())
+    val outputDir = new Path(args.model())
+    FileSystem.get(sc.hadoopConfiguration).delete(outputDir, true)
+    var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
+    if (shuffle == true){
+      textFile.map(line => {
+        val random = scala.util.Random
+        val randomkey = random.nextInt
+        (randomkey, line)
+        })
+      .sortByKey()
+      .map(line => line._2)
+    }
+    val trained = textFile.map(line =>{
+      // Parse input
+      val tokens = line.split(" ")
+      val docid = tokens(0)
+      var isSpam = 0;
+      if (tokens(1) == "spam"){
+        isSpam = 1;
+      }
+      var features = tokens.toList.slice(2, tokens.size-1).map(fe => fe.toInt).toArray
+
+      (0, (docid, isSpam, features))
+    })
+    .groupByKey(1)
+    .flatMap(kvpairs => {
+        var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
+        def spamminess(features: Array[Int]) : Double = {
+          var score = 0d
+          features.foreach(f => if (w.contains(f)) score += w(f))
+          score
+        }
+        kvpairs._2.map(instance => {
+          // This is the main learner:
+            val delta = 0.002
+            val isSpam = instance._2   // label
+            val features = instance._3 // feature vector of the training instance
+            // Update the weights as follows:
+            val score = spamminess(features)
+            val prob = 1.0 / (1 + exp(-score))
+            features.foreach(f => {
+              if (w.contains(f)) {
+                w(f) += (isSpam - prob) * delta
+              } else {
+                w(f) = (isSpam - prob) * delta
+               }
+            })
+          })
+        w.map(line => (line._1, line._2))
+      })
+    // val trainWeight:  RDD[(Int, Double)] = sc.parallelize(w.toSeq).map(line => (line._1, line._2))//.map(e => (e._1, e._2))
+    trained.saveAsTextFile(args.model())
+
+      }
+}
