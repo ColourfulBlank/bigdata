@@ -34,7 +34,8 @@ object TrainSpamClassifier extends Tokenizer {
     val outputDir = new Path(args.model())
     FileSystem.get(sc.hadoopConfiguration).delete(outputDir, true)
     var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
-    if (shuffle == true){
+    if (shuffle){
+      println("shuffle")
       textFile.map(line => {
         val randomkey = Random.nextInt
         (randomkey, line)
