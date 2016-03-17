@@ -11,6 +11,7 @@ import org.apache.spark.SparkConf
 import org.rogach.scallop._
 import org.apache.spark.rdd.RDD
 import scala.math._
+import scala.util.Random
 
 import java.util.Date
 import java.io.File
@@ -35,8 +36,7 @@ object TrainSpamClassifier extends Tokenizer {
     var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
     if (shuffle == true){
       textFile.map(line => {
-        val random = scala.util.Random
-        val randomkey = random.nextInt
+        val randomkey = Random.nextInt
         (randomkey, line)
         })
       .sortByKey()

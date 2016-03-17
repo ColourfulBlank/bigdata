@@ -25,7 +25,7 @@ object ApplySpamClassifier extends Tokenizer {
     log.info("Input: " + args.input())
     log.info("Output: " + args.output())
     log.info("Model: " + args.model())
-    val conf = new SparkConf().setAppName("=O=")
+    val conf = new SparkConf().setAppName("=O= This is tester")
     val sc = new SparkContext(conf)
     val textFile = sc.textFile(args.input())
     val outputDir = new Path(args.output())
@@ -38,8 +38,6 @@ object ApplySpamClassifier extends Tokenizer {
           .map(line => (line(0).stripPrefix("(").trim.toInt, line(1).stripSuffix(")").trim.toDouble))
           .collectAsMap
       )
-
-
 
     val trained = textFile.map(line =>{
       // Parse input
@@ -55,19 +53,17 @@ object ApplySpamClassifier extends Tokenizer {
           features.foreach(f => if (broadCastMap.value.contains(f)) score += broadCastMap.value(f))
           score
         }
-        // kvpairs._2.map(instance => {
-          // This is the main learner:
-            val id = instance._1
-            val isSpam = instance._2   // label
-            val features = instance._3 // feature vector of the training instance
-            // Update the weights as follows:
-            val score = spamminess(features)
-            if (score > 0) {
-              (id, isSpam, score, "spam")
-            } else {
-              (id, isSpam, score, "ham")
-            }
-        // })
+        // This is the main learner:
+        val id = instance._1
+        val isSpam = instance._2   // label
+        val features = instance._3 // feature vector of the training instance
+        // Update the weights as follows:
+        val score = spamminess(features)
+        if (score > 0) {
+          (id, isSpam, score, "spam")
+        } else {
+          (id, isSpam, score, "ham")
+        }
       })
     trained.saveAsTextFile(args.output())
 

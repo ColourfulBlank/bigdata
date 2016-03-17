@@ -90,7 +90,7 @@ object ApplyEnsembleSpamClassifier extends Tokenizer {
               if (method.equals("average")){
 
                 val score = ( score_group_x + score_group_y + score_britney ) / 3 
-                if (score >= 0) {
+                if (score > 0) {
                   (id, isSpam, score, "spam")
                 } else {
                   (id, isSpam, score, "ham")
@@ -98,22 +98,22 @@ object ApplyEnsembleSpamClassifier extends Tokenizer {
 
               } else if (method.equals("vote")){
                 var score = 0;
-                if (score_group_x >= 0) {
+                if (score_group_x > 0) {
                   score = score + 1;
                 }else {
                   score = score - 1;
                 }
-                if (score_group_y >= 0) {
+                if (score_group_y > 0) {
                   score = score + 1;
                 }else {
                   score = score - 1;
                 }
-                if (score_britney >= 0) {
+                if (score_britney > 0) {
                   score = score + 1;
                 }else {
                   score = score - 1;
                 }
-                if (score >= 0){
+                if (score > 0){
                   (id, isSpam, score, "spam")
                 } else {
                   (id, isSpam, score, "ham")
