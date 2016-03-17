@@ -48,11 +48,11 @@ object TrainSpamClassifier extends Tokenizer {
       // Parse input
       val tokens = line.split(" ")
       val docid = tokens(0)
-      var isSpam = 0;
+      var isSpam = 0d;
       if (tokens(1) == "spam"){
-        isSpam = 1;
+        isSpam = 1d;
       }
-      var features = tokens.toList.slice(2, tokens.size-1).map(fe => fe.toInt).toArray
+      var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
 
       (0, (docid, isSpam, features))
     })

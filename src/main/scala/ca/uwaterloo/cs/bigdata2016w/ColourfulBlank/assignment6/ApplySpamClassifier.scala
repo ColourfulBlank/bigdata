@@ -62,7 +62,7 @@ object ApplySpamClassifier extends Tokenizer {
             val features = instance._3 // feature vector of the training instance
             // Update the weights as follows:
             val score = spamminess(features)
-            if (score >= 0) {
+            if (score > 0) {
               (id, isSpam, score, "spam")
             } else {
               (id, isSpam, score, "ham")
