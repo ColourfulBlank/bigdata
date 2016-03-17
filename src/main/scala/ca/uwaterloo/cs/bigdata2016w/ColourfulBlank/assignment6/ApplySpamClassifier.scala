@@ -25,7 +25,7 @@ object ApplySpamClassifier extends Tokenizer {
     log.info("Input: " + args.input())
     log.info("Output: " + args.output())
     log.info("Model: " + args.model())
-    val conf = new SparkConf().setAppName("=O= This is tester")
+    val conf = new SparkConf().setAppName("=O=")
     val sc = new SparkContext(conf)
     val textFile = sc.textFile(args.input())
     val outputDir = new Path(args.output())
