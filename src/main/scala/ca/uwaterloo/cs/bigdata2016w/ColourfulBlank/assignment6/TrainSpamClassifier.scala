@@ -26,9 +26,7 @@ object TrainSpamClassifier extends Tokenizer {
     log.info("Input: " + args.input())
     log.info("Model: " + args.model())
     log.info("Shuffle: " + args.shuffle.isSupplied)
-    val shuffle = args.shuffle.isSupplied
-    println(shuffle.getClass)
-    
+    val shuffle = args.shuffle.isSupplied    
     val conf = new SparkConf().setAppName("=O=")
     val sc = new SparkContext(conf)
     val textFile = sc.textFile(args.input())
