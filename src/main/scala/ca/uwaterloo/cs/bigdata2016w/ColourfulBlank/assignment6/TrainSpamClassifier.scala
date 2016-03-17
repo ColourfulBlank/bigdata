@@ -36,53 +36,96 @@ object TrainSpamClassifier extends Tokenizer {
     var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
     if (shuffle){
       println("shuffle")
-      textFile.map(line => {
+      val trained = textFile.map(line => {
         val randomkey = Random.nextInt
         (randomkey, line)
         })
       .sortByKey()
       .map(line => line._2)
-    }
-    val trained = textFile.map(line =>{
-      // Parse input
-      val tokens = line.split(" ")
-      val docid = tokens(0)
-      var isSpam = 0d;
-      if (tokens(1) == "spam"){
-        isSpam = 1d;
-      }
-      var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
-
-      (0, (docid, isSpam, features))
-    })
-    .groupByKey(1)
-    .flatMap(kvpairs => {
-        var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
-        def spamminess(features: Array[Int]) : Double = {
-          var score = 0d
-          features.foreach(f => if (w.contains(f)) score += w(f))
-          score
+      .map(line =>{
+        // Parse input
+        val tokens = line.split(" ")
+        val docid = tokens(0)
+        var isSpam = 0d;
+        if (tokens(1) == "spam"){
+          isSpam = 1d;
         }
-        kvpairs._2.map(instance => {
-          // This is the main learner:
-            val delta = 0.002
-            val isSpam = instance._2   // label
-            val features = instance._3 // feature vector of the training instance
-            // Update the weights as follows:
-            val score = spamminess(features)
-            val prob = 1.0 / (1 + exp(-score))
-            features.foreach(f => {
-              if (w.contains(f)) {
-                w(f) += (isSpam - prob) * delta
-              } else {
-                w(f) = (isSpam - prob) * delta
-               }
-            })
-          })
-        w.map(line => (line._1, line._2))
+        var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
+
+        (0, (docid, isSpam, features))
       })
-    // val trainWeight:  RDD[(Int, Double)] = sc.parallelize(w.toSeq).map(line => (line._1, line._2))//.map(e => (e._1, e._2))
-    trained.saveAsTextFile(args.model())
+      .groupByKey(1)
+      .flatMap(kvpairs => {
+          var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
+          def spamminess(features: Array[Int]) : Double = {
+            var score = 0d
+            features.foreach(f => if (w.contains(f)) score += w(f))
+            score
+          }
+          kvpairs._2.map(instance => {
+            // This is the main learner:
+              val delta = 0.002
+              val isSpam = instance._2   // label
+              val features = instance._3 // feature vector of the training instance
+              // Update the weights as follows:
+              val score = spamminess(features)
+              val prob = 1.0 / (1 + exp(-score))
+              features.foreach(f => {
+                if (w.contains(f)) {
+                  w(f) += (isSpam - prob) * delta
+                } else {
+                  w(f) = (isSpam - prob) * delta
+                 }
+              })
+            })
+          w.map(line => (line._1, line._2))
+        })
+      // val trainWeight:  RDD[(Int, Double)] = sc.parallelize(w.toSeq).map(line => (line._1, line._2))//.map(e => (e._1, e._2))
+      trained.saveAsTextFile(args.model())
+
+    } else {
+      val trained = textFile.map(line =>{
+        // Parse input
+        val tokens = line.split(" ")
+        val docid = tokens(0)
+        var isSpam = 0d;
+        if (tokens(1) == "spam"){
+          isSpam = 1d;
+        }
+        var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
+
+        (0, (docid, isSpam, features))
+      })
+      .groupByKey(1)
+      .flatMap(kvpairs => {
+          var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
+          def spamminess(features: Array[Int]) : Double = {
+            var score = 0d
+            features.foreach(f => if (w.contains(f)) score += w(f))
+            score
+          }
+          kvpairs._2.map(instance => {
+            // This is the main learner:
+              val delta = 0.002
+              val isSpam = instance._2   // label
+              val features = instance._3 // feature vector of the training instance
+              // Update the weights as follows:
+              val score = spamminess(features)
+              val prob = 1.0 / (1 + exp(-score))
+              features.foreach(f => {
+                if (w.contains(f)) {
+                  w(f) += (isSpam - prob) * delta
+                } else {
+                  w(f) = (isSpam - prob) * delta
+                 }
+              })
+            })
+          w.map(line => (line._1, line._2))
+        })
+      // val trainWeight:  RDD[(Int, Double)] = sc.parallelize(w.toSeq).map(line => (line._1, line._2))//.map(e => (e._1, e._2))
+      trained.saveAsTextFile(args.model())
+    }
+    
 
       }
 }
