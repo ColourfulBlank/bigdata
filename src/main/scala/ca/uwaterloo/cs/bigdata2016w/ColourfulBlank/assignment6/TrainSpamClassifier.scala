@@ -92,7 +92,7 @@ object TrainSpamClassifier extends Tokenizer {
         if (tokens(1) == "spam"){
           isSpam = 1d;
         }
-        var features = tokens.toList.slice(2, tokens.size)//.map(fe => fe.toInt).toArray
+        var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
 
         (0, (docid, isSpam, features))
       })
@@ -108,7 +108,7 @@ object TrainSpamClassifier extends Tokenizer {
             // This is the main learner:
               val delta = 0.002
               val isSpam = instance._2   // label
-              val features = instance._3.map(fe => fe.toInt).toArray // feature vector of the training instance
+              val features = instance._3 // feature vector of the training instance
               // Update the weights as follows:
               val score = spamminess(features)
               val prob = 1.0 / (1 + exp(-score))
