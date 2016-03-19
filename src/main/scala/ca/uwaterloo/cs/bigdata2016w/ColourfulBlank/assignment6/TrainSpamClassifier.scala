@@ -21,14 +21,14 @@ import java.text.DateFormat
 object TrainSpamClassifier extends Tokenizer {
   val log = Logger.getLogger(getClass().getName())
   // w is the weight vector (make sure the variable is within scope)
-      def tryThis(iter: Iterator[(Int, Iterable[(String, Double, Array[Int])])]) : Iterator[(Int, Double)] = 
+      def tryThis(iter: Iterator[(Int, Iterable[(String, Double, Array[String])])]) : Iterator[(Int, Double)] = 
         {
         
           val weightmap = iter.map(kvpairs => {
             var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
-            def spamminess(features: Array[Int]) : Double = {
+            def spamminess(features: Array[String]) : Double = {
               var score = 0d
-              features.foreach(f => if (w.contains(f)) score += w(f))
+              features.foreach(f => if (w.contains(f.toInt)) score += w(f.toInt))
               score
             }
            val weight = kvpairs._2.foreach(instance => {
@@ -40,10 +40,10 @@ object TrainSpamClassifier extends Tokenizer {
               val score = spamminess(features)
               val prob = 1.0 / (1 + exp(-score))
               features.foreach(f => {
-                if (w.contains(f)) {
-                  w(f) += (isSpam - prob) * delta
+                if (w.contains(f.toInt)) {
+                  w(f.toInt) += (isSpam - prob) * delta
                 } else {
-                  w(f) = (isSpam - prob) * delta
+                  w(f.toInt) = (isSpam - prob) * delta
                  } 
               })
             })
@@ -81,7 +81,7 @@ object TrainSpamClassifier extends Tokenizer {
         if (tokens(1) == "spam"){
           isSpam = 1d;
         }
-        var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
+        var features = tokens.toList.slice(2, tokens.size)/*.map(fe => fe.toInt)*/.toArray
 
         (0, (docid, isSpam, features))
       })
@@ -99,7 +99,7 @@ object TrainSpamClassifier extends Tokenizer {
         if (tokens(1) == "spam"){
           isSpam = 1d;
         }
-        var features = tokens.toList.slice(2, tokens.size).map(fe => fe.toInt).toArray
+        var features = tokens.toList.slice(2, tokens.size)/*.map(fe => fe.toInt)*/.toArray
 
         (0, (docid, isSpam, features))
       })
