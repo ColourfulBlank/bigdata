@@ -31,7 +31,7 @@ object TrainSpamClassifier extends Tokenizer {
               features.foreach(f => if (w.contains(f)) score += w(f))
               score
             }
-           val weight = kvpairs._2.map(instance => {
+           val weight = kvpairs._2.foreach(instance => {
             // This is the main learner:
               val delta = 0.002
               val isSpam = instance._2   // label
@@ -47,8 +47,9 @@ object TrainSpamClassifier extends Tokenizer {
                  } 
               })
             })
-           w.map(line => (line._1, line._2)).toIterator
+          w.map(line => (line._1, line._2)).toIterator
           })
+           
           
         }
   def main(argv: Array[String]) {
