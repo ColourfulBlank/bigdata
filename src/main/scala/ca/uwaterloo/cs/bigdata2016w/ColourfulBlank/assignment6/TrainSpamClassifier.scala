@@ -24,7 +24,7 @@ object TrainSpamClassifier extends Tokenizer {
       def tryThis(iter: Iterator[(Int, Iterable[(String, Double, Array[Int])])]) : Iterator[(Int, Double)] = 
         {
         
-          iter.flatMap(kvpairs => {
+          val weightmap = iter.map(kvpairs => {
             var w = scala.collection.mutable.Map[Int, Double]()///need to be board casted
             def spamminess(features: Array[Int]) : Double = {
               var score = 0d
@@ -47,9 +47,10 @@ object TrainSpamClassifier extends Tokenizer {
                  } 
               })
             })
-          w.map(line => (line._1, line._2)).toIterator
+          w
           })
-           
+           // weightmap(0).map(line => (line._1, line._2)).toIterator
+           weightmap.flatMap(line => line)
           
         }
   def main(argv: Array[String]) {
