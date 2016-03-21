@@ -105,6 +105,7 @@ object TrainSpamClassifier extends Tokenizer {
 
         (0, (docid, isSpam, features))
       })
+      .coalesce(1)
       .groupByKey(1)
       .mapPartitions(tryThis)
       
