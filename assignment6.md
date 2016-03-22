@@ -21,7 +21,7 @@ What is the 1-ROCA% score of the voting technique in the 3-classifier ensemble?
 ###Question 4: 
 What is the 1-ROCA% score of a single classifier trained on all available training data concatenated together?
 
-1-ROCA%: 14.85//19.94
+1-ROCA%: 19.94
 
 ###Question 5: 
 Run the shuffle trainer 10 times on the britney dataset, predict and evaluate the classifier on the test data each time. Report the 1-ROCA% score in each of the ten trials and compute the overall average.
@@ -36,4 +36,5 @@ Run the shuffle trainer 10 times on the britney dataset, predict and evaluate th
 1. 1-ROCA%: 14.41
 1. 1-ROCA%: 15.69
 1. 1-ROCA%: 18.23
+
 average: 17.485
