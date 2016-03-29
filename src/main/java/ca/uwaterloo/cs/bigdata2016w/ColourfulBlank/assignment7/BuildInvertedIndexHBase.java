@@ -115,7 +115,7 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     public void reduce(Text key, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> valuePairs, Context context)
         throws IOException, InterruptedException {
       Put put = new Put(Bytes.toBytes(key.toString()));
-      put.add(CF, Bytes.toBytes(valuePairs.getLeftElement().value().toString()), Bytes.toBytes(valuePairs.getRightElement().value().toString()));
+      put.add(CF, Bytes.toBytes(valuePairs.getLeftElement().value.toString()), Bytes.toBytes(valuePairs.getRightElement().value.toString()));
 
       context.write(null, put);
     }
