@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -115,6 +117,7 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     public void reduce(Text key, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> valuePairs, Context context)
         throws IOException, InterruptedException {
       Put put = new Put(Bytes.toBytes(key.toString()));
+      // need to find a way store arrayListWritable
       put.add(CF, Bytes.toBytes(valuePairs.getLeftElement().value.toString()), Bytes.toBytes(valuePairs.getRightElement().value.toString()));
 
       context.write(null, put);
