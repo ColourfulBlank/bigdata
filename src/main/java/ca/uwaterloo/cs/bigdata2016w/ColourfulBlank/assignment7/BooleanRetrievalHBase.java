@@ -1,4 +1,4 @@
-package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment7
+package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment7;
 
 import java.io.BufferedReader;
 import java.io.IOException;
