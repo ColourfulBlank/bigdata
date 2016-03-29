@@ -1,4 +1,4 @@
-package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment7;
+package ca.uwaterloo.cs.bigdata2016w.ColourfulBlank.assignment7
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,11 +6,6 @@ import java.io.InputStreamReader;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-import java.util.ArrayList;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-
-
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -22,9 +17,6 @@ import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.fs.FileStatus;
-
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -34,23 +26,18 @@ import tl.lin.data.array.ArrayListWritable;
 import tl.lin.data.pair.PairOfInts;
 import tl.lin.data.pair.PairOfWritables;
 
-import org.apache.hadoop.io.WritableUtils;
-
-public class BooleanRetrievalCompressed extends Configured implements Tool {
-  private MapFile.Reader index;
-  private ArrayList<MapFile.Reader> indexArray = new ArrayList<MapFile.Reader>();
+public class BooleanRetrieval extends Configured implements Tool {
+  private static final Logger LOG = Logger.getLogger(HBaseWordCountFetch.class);
+  // private MapFile.Reader index; //change here
+  private HTableInterface table;
   private FSDataInputStream collection;
   private Stack<Set<Integer>> stack;
-  private int NumberofFiles = 0;
-  private BooleanRetrievalCompressed() {}
-  private void initialize(String indexPath, String collectionPath, FileSystem fs) throws IOException {
-    FileStatus[] fss = fs.listStatus(new Path(indexPath));
-    NumberofFiles = fss.length-1;
-    for (int i = 0; i < NumberofFiles; i++){
-      String subDir = "/part-r-0000" + Integer.toString(i);
-      index = new MapFile.Reader(new Path(indexPath + subDir), fs.getConf());
-      indexArray.add(index);
-    }
+
+  private BooleanRetrieval() {}
+
+  private void initialize(HTableInterface Htable, String collectionPath, FileSystem fs) throws IOException {
+    // index = new MapFile.Reader(new Path(indexPath + "/part-r-00000"), fs.getConf());//change here 
+    table = Htable;
     collection = fs.open(new Path(collectionPath));
     stack = new Stack<Set<Integer>>();
   }
@@ -112,50 +99,52 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
     stack.push(sn);
   }
 
-  private Set<Integer> fetchDocumentSet(String term) throws IOException {//need to parse here
+  private Set<Integer> fetchDocumentSet(String term) throws IOException {
     Set<Integer> set = new TreeSet<Integer>();
-    int indexNum = 0;
-    int value = 0;
-    int df = 0;
-    BytesWritable out = fetchPostings(term);
-    ByteArrayInputStream bytearrayStream = new ByteArrayInputStream(out.getBytes());
-    DataInputStream datainputStream = new DataInputStream( bytearrayStream );
-    df = WritableUtils.readVInt(datainputStream);
-    for ( int i = 0; i < df; i++ ){
-      indexNum = indexNum + WritableUtils.readVInt(datainputStream);
-      value = WritableUtils.readVInt(datainputStream);
-      set.add(indexNum);
+
+    for (PairOfInts pair : fetchPostings(term)) {
+      set.add(pair.getLeftElement());
     }
+
     return set;
   }
 
-  private BytesWritable fetchPostings(String term) throws IOException {//change 
+  private ArrayListWritable<PairOfInts> fetchPostings(String term) throws IOException {
     Text key = new Text();
-   BytesWritable value = new BytesWritable();//(DF, BytesWritable(index + value))
-    key.set(term);
-    for (int i = 0; i < NumberofFiles; i++){
-      indexArray.get(i).get(key, value);  
-    }
-    
-    return value;
+    PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> value =
+        new PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>();
+//change here 
+    // key.set(term);
+    // index.get(key, value);
+        // key.set(term);
+        Get get = new Get(Bytes.toBytes(term)); //row
+        Result result = table.get(get);
+
+
+    // return rest.getRightElement();
+        return result.getRightElement();
   }
 
-  private String fetchLine(long offset) throws IOException {//DO NOT CHANGE
+  public String fetchLine(long offset) throws IOException {
     collection.seek(offset);
     BufferedReader reader = new BufferedReader(new InputStreamReader(collection));
 
-    return reader.readLine();
+    String d = reader.readLine();
+    return d.length() > 80 ? d.substring(0, 80) + "..." : d;
   }
 
   public static class Args {
-    @Option(name = "-index", metaVar = "[path]", required = true, usage = "index path")
-    public String index;
+    @Option(name = "-table", metaVar = "[path]", required = true, usage = "table path")
+    public String table;
 
     @Option(name = "-collection", metaVar = "[path]", required = true, usage = "collection path")
     public String collection;
 
     @Option(name = "-query", metaVar = "[term]", required = true, usage = "query")
     public String query;
+
+    @Option(name = "-config", metaVar = "[path]", required = true, usage = "HBase config")
+    public String config;
   }
 
   /**
@@ -173,14 +162,17 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
       return -1;
     }
 
-    if (args.collection.endsWith(".gz")) {
-      System.out.println("gzipped collection is not seekable: use compressed version!");
-      return -1;
-    }
+    Configuration conf = getConf();
+    conf.addResource(new Path(args.config));
+
+    Configuration hbaseConfig = HBaseConfiguration.create(conf);
+    HConnection hbaseConnection = HConnectionManager.createConnection(hbaseConfig);
+    ///
+    HTableInterface table = hbaseConnection.getTable(args.table);
 
     FileSystem fs = FileSystem.get(new Configuration());
 
-    initialize(args.index, args.collection, fs);
+    initialize(table, args.collection, fs);// change here
 
     System.out.println("Query: " + args.query);
     long startTime = System.currentTimeMillis();
@@ -194,6 +186,6 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
    * Dispatches command-line arguments to the tool via the {@code ToolRunner}.
    */
   public static void main(String[] args) throws Exception {
-    ToolRunner.run(new BooleanRetrievalCompressed(), args);
+    ToolRunner.run(new BooleanRetrieval(), args);
   }
 }
