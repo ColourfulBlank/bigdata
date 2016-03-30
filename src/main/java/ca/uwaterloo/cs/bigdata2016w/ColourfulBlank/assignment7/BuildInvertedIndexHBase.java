@@ -131,8 +131,14 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     @Option(name = "-input", metaVar = "[path]", required = true, usage = "input path")
     public String input;
 
-    @Option(name = "-output", metaVar = "[path]", required = true, usage = "output path")
-    public String output;
+    @Option(name = "-table", metaVar = "[name]", required = true, usage = "HBase table to store output")
+    public String table;
+
+    @Option(name = "-config", metaVar = "[path]", required = true, usage = "HBase config")
+    public String config;
+
+    @Option(name = "-reducers", metaVar = "[num]", required = false, usage = "number of reducers")
+    public int numReducers = 1;
   }
 
   /**
@@ -193,7 +199,7 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     // job.setOutputFormatClass(MapFileOutputFormat.class);
 
     job.setMapperClass(MyMapper.class);
-    job.setReducerClass(MyReducer.class);
+    job.setCombinerClass(MyReducer.class);
     job.setNumReduceTasks(1);//!
 
     FileInputFormat.setInputPaths(job, new Path(args.input));
