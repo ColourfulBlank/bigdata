@@ -83,45 +83,64 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     }
   }
 
-  private static class MyReducer extends
-      Reducer<Text, PairOfInts, Text, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>> {
-    private final static IntWritable DF = new IntWritable();
+  // private static class MyReducer extends
+  //     Reducer<Text, PairOfInts, Text, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>> {
+  //   private final static IntWritable DF = new IntWritable();
 
-    @Override
-    public void reduce(Text key, Iterable<PairOfInts> values, Context context)
-        throws IOException, InterruptedException {
-      Iterator<PairOfInts> iter = values.iterator();
-      ArrayListWritable<PairOfInts> postings = new ArrayListWritable<PairOfInts>();
+  //   @Override
+  //   public void reduce(Text key, Iterable<PairOfInts> values, Context context)
+  //       throws IOException, InterruptedException {
+  //     Iterator<PairOfInts> iter = values.iterator();
+  //     ArrayListWritable<PairOfInts> postings = new ArrayListWritable<PairOfInts>();
 
-      int df = 0;
-      while (iter.hasNext()) {
-        postings.add(iter.next().clone());
-        df++;
-      }
+  //     int df = 0;
+  //     while (iter.hasNext()) {
+  //       postings.add(iter.next().clone());
+  //       df++;
+  //     }
+  //     // Sort the postings by docno ascending.
+  //     Collections.sort(postings);
 
-      // Sort the postings by docno ascending.
-      Collections.sort(postings);
-
-      DF.set(df);
-      context.write(key,
-          new PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>(DF, postings));
-    }
-  }
+  //     DF.set(df);
+  //     context.write(key,
+  //         new PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>(DF, postings));
+  //   }
+  // }
 
   //HBase stuffs
   public static final String[] FAMILIES = { "p" }; // column family
   public static final byte[] CF = FAMILIES[0].getBytes(); // column family
   // public static final byte[] COUNT = "count".getBytes();
 
-  public static class MyTableReducer extends TableReducer<Text, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>, ImmutableBytesWritable>  {
-    public void reduce(Text key, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> valuePairs, Context context)
+  public static class MyTableReducer extends TableReducer<Text, PairOfInts, ImmutableBytesWritable>  {
+//     public void reduce(Text key, PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> valuePairs, Context context)
+//         throws IOException, InterruptedException {
+// ////
+
+
+// ////
+//       Put put = new Put(Bytes.toBytes(key.toString()));
+//       put.add(CF, Bytes.toBytes(valuePairs.getLeftElement().value.toString()), Bytes.toBytes(valuePairs.getRightElement().value.toString()));
+
+//       context.write(null, put);
+//     }
+
+    private final static IntWritable DF = new IntWritable();
+
+    @Override
+    public void reduce(Text key, Iterable<PairOfInts> values, Context context)
         throws IOException, InterruptedException {
+      Iterator<PairOfInts> iter = values.iterator();
+      PairOfInts pair;
       Put put = new Put(Bytes.toBytes(key.toString()));
-      // need to find a way store arrayListWritable
-      put.add(CF, Bytes.toBytes(valuePairs.getLeftElement().value.toString()), Bytes.toBytes(valuePairs.getRightElement().value.toString()));
+      while (iter.hasNext()) {
+        pair = iter.next().clone();
+        put.add(CF, Bytes.toBytes(pair.getLeftElement().toString()), Bytes.toBytes(pair.getRightElement().toString()));
+      }
 
       context.write(null, put);
     }
+
   }
 
 
@@ -194,12 +213,8 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(PairOfInts.class);
 
-    // job.setOutputKeyClass(Text.class);
-    // job.setOutputValueClass(PairOfWritables.class);
-    // job.setOutputFormatClass(MapFileOutputFormat.class);
-
     job.setMapperClass(MyMapper.class);
-    job.setCombinerClass(MyReducer.class);
+    // job.setCombinerClass(MyReducer.class);
     job.setNumReduceTasks(1);//!
 
     FileInputFormat.setInputPaths(job, new Path(args.input));
