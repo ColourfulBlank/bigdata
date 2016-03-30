@@ -129,10 +129,18 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         // key.set(term);
         Get get = new Get(Bytes.toBytes(term)); //row
         Result result = table.get(get);
+        //make NavigableMap then poll elements out pollFirstEntry()
+        ArrayListWritable<PairOfInts> indexes = new ArrayListWritable();
+        NavigableMap navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
+        while (navigableMap.firstEntry() != null){
+          Map.Entry mapPair = navigableMap.pollFirstEntry();
+          PairOfInts pair = new PairOfInts(Integer.toInt(mapPair.getKey()), Integer.toInt(mapPair.getValue()));
+          indexes.add(pair);
+        }
 
 ///////////////
     // return rest.getRightElement();
-        return result.getRightElement();
+        return indexes;
   }
 
   public String fetchLine(long offset) throws IOException {
