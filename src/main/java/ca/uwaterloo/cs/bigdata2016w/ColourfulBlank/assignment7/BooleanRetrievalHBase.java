@@ -135,7 +135,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         ArrayListWritable<PairOfInts> indexes = new ArrayListWritable();
         NavigableMap<byte[], byte[]> navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
         while (navigableMap.firstEntry() != null){
-          Map.Entry mapPair = navigableMap.pollFirstEntry();
+          Map mapPair = navigableMap.pollFirstEntry();
           PairOfInts pair = new PairOfInts(Integer.toInt(mapPair.getKey()), Integer.toInt(mapPair.getValue()));
           indexes.add(pair);
         }
