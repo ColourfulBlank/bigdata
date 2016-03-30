@@ -37,7 +37,7 @@ import tl.lin.data.pair.PairOfInts;
 import tl.lin.data.pair.PairOfWritables;
 
 public class BooleanRetrievalHBase extends Configured implements Tool {
-  private static final Logger LOG = Logger.getLogger(HBaseWordCountFetch.class);
+  private static final Logger LOG = Logger.getLogger(BooleanRetrievalHBase.class);
   // private MapFile.Reader index; //change here
   private HTableInterface table;
   private FSDataInputStream collection;
