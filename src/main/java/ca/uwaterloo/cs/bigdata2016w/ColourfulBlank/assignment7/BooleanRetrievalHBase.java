@@ -132,7 +132,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         Result result = table.get(get);
         //make NavigableMap then poll elements out pollFirstEntry()
         ArrayListWritable<PairOfInts> indexes = new ArrayListWritable();
-        NavigableMap<byte[], byte[]> navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
+        TreeMap<byte[], byte[]> navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
         while (navigableMap.firstEntry() != null){
           Map.Entry mapPair = navigableMap.pollFirstEntry();
           PairOfInts pair = new PairOfInts(Integer.toInt(mapPair.getKey()), Integer.toInt(mapPair.getValue()));
