@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -131,7 +132,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         Result result = table.get(get);
         //make NavigableMap then poll elements out pollFirstEntry()
         ArrayListWritable<PairOfInts> indexes = new ArrayListWritable();
-        NavigableMap navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
+        TreeMap navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
         while (navigableMap.firstEntry() != null){
           Map.Entry mapPair = navigableMap.pollFirstEntry();
           PairOfInts pair = new PairOfInts(Integer.toInt(mapPair.getKey()), Integer.toInt(mapPair.getValue()));
