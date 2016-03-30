@@ -130,7 +130,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         Get get = new Get(Bytes.toBytes(term)); //row
         Result result = table.get(get);
 
-
+///////////////
     // return rest.getRightElement();
         return result.getRightElement();
   }
