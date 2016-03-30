@@ -135,7 +135,7 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
       Put put = new Put(Bytes.toBytes(key.toString()));
       while (iter.hasNext()) {
         pair = iter.next().clone();
-        put.add(CF, Bytes.toBytes(pair.getLeftElement()), Bytes.toBytes(pair.getRightElement()));
+        put.add(CF, Bytes.toBytes(pair.getLeftElement()), Bytes.toBytes(pair.getValue()));
       }
 
       context.write(null, put);
