@@ -215,7 +215,7 @@ public class BuildInvertedIndexHBase extends Configured implements Tool {
 
     job.setMapperClass(MyMapper.class);
     // job.setCombinerClass(MyReducer.class);
-    job.setNumReduceTasks(1);//!
+    job.setNumReduceTasks(args.numReducers);//!
 
     FileInputFormat.setInputPaths(job, new Path(args.input));
     TableMapReduceUtil.initTableReducerJob(args.table, MyTableReducer.class, job);
