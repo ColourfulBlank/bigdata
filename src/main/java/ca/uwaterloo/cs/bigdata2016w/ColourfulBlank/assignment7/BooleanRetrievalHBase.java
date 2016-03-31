@@ -125,24 +125,18 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
     Text key = new Text();
     PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>> value =
         new PairOfWritables<IntWritable, ArrayListWritable<PairOfInts>>();
-//change here 
-    // key.set(term);
-    // index.get(key, value);
-        // key.set(term);
+
         Get get = new Get(Bytes.toBytes(term)); //row
         Result result = table.get(get);
-        //make NavigableMap then poll elements out pollFirstEntry()
         ArrayListWritable<PairOfInts> indexes = new ArrayListWritable();
         NavigableMap<byte[], byte[]> navigableMap = result.getFamilyMap(BuildInvertedIndexHBase.CF);
+
         while (navigableMap.firstEntry() != null){
-          
           PairOfInts pair = new PairOfInts(Bytes.toInt(navigableMap.firstEntry().getKey()), Bytes.toInt(navigableMap.firstEntry().getValue()));
           navigableMap.pollFirstEntry();
           indexes.add(pair);
         }
 
-///////////////
-    // return rest.getRightElement();
         return indexes;
   }
 
